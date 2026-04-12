@@ -12,8 +12,11 @@ public class UserService {
     }
 
     public User getUser(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow();
+        return userRepository.findByEmail(email).orElse(null);
+    }
+
+    public User getUser(long id) {
+        return userRepository.findById(id).orElse(null);
     }
 
     public User createUser(String name, String email, String password) {
