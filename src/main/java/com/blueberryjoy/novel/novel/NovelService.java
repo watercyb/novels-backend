@@ -1,9 +1,12 @@
 package com.blueberryjoy.novel.novel;
 
+import com.blueberryjoy.novel.chpater.Chapter;
+import com.blueberryjoy.novel.chpater.ChapterRepository;
 import com.blueberryjoy.novel.chpater.ChapterService;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;
+import com.blueberryjoy.novel.user.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +21,14 @@ public class NovelService {
 
     private final NovelRepository novelRepository;
     private final TagRepository tagRepository;
+    private final ChapterRepository chapterRepository;
+    private final UserRepository userRepository;
 
-    public NovelService(NovelRepository novelRepository, TagRepository tagRepository) {
+    public NovelService(NovelRepository novelRepository, TagRepository tagRepository, ChapterRepository chapterRepository, UserRepository userRepository) {
         this.novelRepository = novelRepository;
         this.tagRepository = tagRepository;
+        this.chapterRepository = chapterRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
@@ -31,12 +38,27 @@ public class NovelService {
         return new NovelDTO(novel);
     }
 
-    public Novel createNovel(String title, String description, User user, String coverUrl) {
+    @Transactional
+    public Novel createNovel(String title, String description, long userId, String coverUrl) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) return null;
+
         Novel novel = new Novel();
         novel.setTitle(title);
-        novel.setDescription(title);
+        novel.setDescription(description);
         novel.setAuthor(user);
         novel.setCoverUrl(coverUrl);
+
+        novel.setLastChapterTitle("");
+        novel = novelRepository.save(novel);
+
+        Chapter chapter = new Chapter();
+        chapter.setTitle("");
+        chapter.setNovel(novel);
+        chapter.setOrderIndex(BigDecimal.ZERO);
+        chapterRepository.save(chapter);
+
+        novel.setLastUpdatedAt(chapter.getUpdatedAt());
         return novelRepository.save(novel);
     }
 
@@ -65,6 +87,17 @@ public class NovelService {
         Tag tag = tagRepository.findById(tagId).orElse(null);
         if (novel == null || tag == null) return false;
         novel.removeTag(tag);
+        return true;
+    }
+
+    @Transactional
+    public boolean deleteNovel(long novelId) {
+        Novel novel = novelRepository.findById(novelId).orElse(null);
+        if (novel == null) return false;
+        novel.getTags().clear();
+        novelRepository.save(novel);
+        chapterRepository.deleteByNovelId(novel.getId());
+        novelRepository.delete(novel);
         return true;
     }
 }

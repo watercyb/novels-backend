@@ -12,7 +12,7 @@ import java.util.List;
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterPreviewDTO(
-                c.id, c.title, c.contentUrl, c.orderIndex, c.createdAt, c.updatedAt
+                c.id, c.title, c.contentUrl, c.orderIndex, c.views, c.createdAt, c.updatedAt
             )
             FROM Chapter c
             WHERE c.novel.id = :novelId
@@ -23,7 +23,6 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("SELECT MAX(c.orderIndex) FROM Chapter c WHERE c.novel.id = :novelId")
     BigDecimal findLastOrderIndex(@Param("novelId") Long novelId);
 
-    @Transactional
     @Modifying
     @Query("UPDATE Chapter c SET c.orderIndex = :newIndex WHERE c.id = :id")
     int updateOrderIndex(@Param("id") Long id,
@@ -46,7 +45,6 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     );
 
     @Modifying
-    @Transactional
     @Query("""
             UPDATE Chapter c
             SET c.orderIndex = c.orderIndex + 1
@@ -57,4 +55,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
             @Param("novelId") Long novelId,
             @Param("startIndex") BigDecimal startIndex
     );
+
+    @Modifying
+    @Query("DELETE FROM Chapter c WHERE c.novel.id = :novelId")
+    void deleteByNovelId(Long novelId);
 }

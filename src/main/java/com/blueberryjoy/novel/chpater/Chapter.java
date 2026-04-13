@@ -3,6 +3,8 @@ import com.blueberryjoy.novel.novel.Novel;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
@@ -33,6 +35,8 @@ public class Chapter {
 
     @Column(precision = 10, scale = 4)
     private BigDecimal orderIndex;
+
+    private int views;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

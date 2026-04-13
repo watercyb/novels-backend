@@ -2,6 +2,7 @@ package com.blueberryjoy.novel.chpater;
 
 import com.blueberryjoy.novel.novel.Novel;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -54,6 +55,7 @@ public class ChapterService {
     }
 
     //Error -> return null
+    @Transactional
     public BigDecimal move(Long aId, Long bId, Long cId) {
         Object[] tupleA = chapterRepository.findNovelIdAndOrderIndexById(aId);
         Object[] tupleB = chapterRepository.findNovelIdAndOrderIndexById(bId);
@@ -88,6 +90,7 @@ public class ChapterService {
     }
 
     //Error -> return null
+    @Transactional
     public BigDecimal moveToLast(long id) {
         Object[] tuple = chapterRepository.findNovelIdAndOrderIndexById(id);
         if (tuple == null) return null;
@@ -113,5 +116,10 @@ public class ChapterService {
         chapter.setContent(content);
         chapterRepository.save(chapter);
         return true;
+    }
+
+    @Transactional
+    public void deleteByNovelId(long novelId) {
+        chapterRepository.deleteByNovelId(novelId);
     }
 }

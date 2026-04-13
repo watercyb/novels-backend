@@ -42,6 +42,18 @@ public class Novel {
     )
     private Set<Tag> tags = new HashSet<>();
 
+    private int likes;
+
+    private int chapters;
+
+    private int words;
+
+    @Column(name = "last_chapter_title", nullable = false)
+    private String lastChapterTitle;
+
+    @Column(name = "last_updated_at", nullable = false)
+    private LocalDateTime lastUpdatedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

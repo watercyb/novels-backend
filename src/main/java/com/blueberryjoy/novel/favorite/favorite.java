@@ -1,6 +1,7 @@
-package com.blueberryjoy.novel.comment;
+package com.blueberryjoy.novel.favorite;
 
 import com.blueberryjoy.novel.chpater.Chapter;
+import com.blueberryjoy.novel.comment.Comment;
 import com.blueberryjoy.novel.user.User;
 import jakarta.persistence.*;
 import lombok.*;
