@@ -1,11 +1,6 @@
 package com.blueberryjoy.novel.chpater;
 
 import com.blueberryjoy.novel.novel.Novel;
-import com.blueberryjoy.novel.novel.NovelPreviewDTO;
-import com.blueberryjoy.novel.novel.NovelRepository;
-import com.blueberryjoy.novel.user.User;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -47,6 +42,10 @@ public class ChapterService {
 
     public List<ChapterPreviewDTO> getChapters(Novel novel) {
         return chapterRepository.findChapterPreview(novel.getId());
+    }
+
+    public List<ChapterPreviewDTO> getChapters(long novelId) {
+        return chapterRepository.findChapterPreview(novelId);
     }
 
     public BigDecimal getNextOrderIndex(long novelId) {
@@ -106,5 +105,13 @@ public class ChapterService {
         int res = chapterRepository.updateOrderIndex(id, newIndex);
         if (res == 0) return null;
         return newIndex;
+    }
+
+    public boolean updateContext(long id, String content) {
+        Chapter chapter = chapterRepository.findById(id).orElse(null);
+        if (chapter == null) return false;
+        chapter.setContent(content);
+        chapterRepository.save(chapter);
+        return true;
     }
 }
