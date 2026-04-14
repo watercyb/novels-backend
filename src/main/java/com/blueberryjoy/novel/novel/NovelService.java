@@ -7,6 +7,9 @@ import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,6 +80,8 @@ public class NovelService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
         if (novel == null || tag == null) return false;
+        if (novel.getTags().contains(tag))
+            return true;
         novel.addTag(tag);
         return true;
     }
@@ -99,5 +104,26 @@ public class NovelService {
         chapterRepository.deleteByNovelId(novel.getId());
         novelRepository.delete(novel);
         return true;
+    }
+
+    @Transactional
+    public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<String> tags, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Novel> novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+        return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Page<NovelDTO> searchByKeyword(String keyword, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Novel> novels = novelRepository.searchByKeyword(keyword, pageable);
+        return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Page<NovelDTO> searchByTags(List<String> tags, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Novel> novels = novelRepository.searchByTags(tags, pageable);
+        return novels.map(NovelDTO::new);
     }
 }

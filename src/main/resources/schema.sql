@@ -1,0 +1,3 @@
+-- To add full text search index to novels table, run only one.
+-- ALTER TABLE novels
+    -- ADD FULLTEXT INDEX ft_title (title);

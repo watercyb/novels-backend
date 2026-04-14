@@ -67,4 +67,6 @@ public class Novel {
         this.tags.remove(tag);
         tag.getNovels().remove(this);
     }
+
+
 }

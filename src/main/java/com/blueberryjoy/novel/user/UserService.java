@@ -1,15 +1,28 @@
 package com.blueberryjoy.novel.user;
 
+import com.blueberryjoy.novel.exception.models.BadRequestException;
+import com.blueberryjoy.novel.security.JwtResponse;
+import com.blueberryjoy.novel.security.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
+
+
+import java.util.Map;
 
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public UserService(UserRepository userRepository) {
+
+    public UserService(UserRepository userRepository, JwtUtils jwtUtils) {
         this.userRepository = userRepository;
+        this.jwtUtils = jwtUtils;
     }
 
     public User findUserByEmail(String email) {
@@ -27,7 +40,19 @@ public class UserService {
         User user = new User();
         user.setUsername(name);
         user.setEmail(email);
-        user.setPasswordHash(password);
+        user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
+    }
+
+    public JwtResponse signup(Map<String, Object> body) {
+        String username = (String) body.get("username");
+        String email = (String) body.get("email");
+        String password = (String) body.get("password");
+        if (username == null || email == null || password == null) {
+            throw new BadRequestException("Please complete all required fields to proceed.");
+        }
+        User user = createUser(username, email, password);
+        String token = jwtUtils.generateToken(user.getEmail());
+        return new JwtResponse(token);
     }
 }

@@ -40,4 +40,8 @@ public class NovelDTO {
         lastUpdatedAt = novel.getLastUpdatedAt();
         createdAt = novel.getCreatedAt();
     }
+
+    public String toString() {
+        return "ID: " + id + " Title: " + title + " Tags: " + tags;
+    }
 }

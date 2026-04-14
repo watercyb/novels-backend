@@ -1,3 +1,6 @@
+server:
+  port: 5000
+
 spring:
   application:
     name: novel
@@ -14,3 +17,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
+
+  sql:
+    init:
+      mode: always

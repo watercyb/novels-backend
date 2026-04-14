@@ -2,6 +2,10 @@ package com.blueberryjoy.novel.exception;
 
 import com.blueberryjoy.novel.exception.models.DuplicatedException;
 import com.blueberryjoy.novel.exception.models.NotFoundException;
+import com.blueberryjoy.novel.exception.models.UnauthorizedException;
+import jakarta.servlet.http.HttpServletResponse;
+import org.apache.coyote.BadRequestException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -36,6 +40,28 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
 
-        return ResponseEntity.status(409).body(response);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ErrorResponse> handle(UnauthorizedException ex) {
+
+        ErrorResponse response = new ErrorResponse(
+                false,
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handle(BadRequestException ex) {
+
+        ErrorResponse response = new ErrorResponse(
+                false,
+                ex.getMessage()
+        );
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
     }
 }
