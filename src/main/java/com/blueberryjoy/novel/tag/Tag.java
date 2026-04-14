@@ -22,6 +22,13 @@ public class Tag {
     @Column(name = "tag_name", unique = true, nullable = false)
     private String name;
 
+    @Column(name = "tag_count", nullable = false)
+    private int tagCount;
+
     @ManyToMany(mappedBy = "tags")
     private Set<Novel> novels = new HashSet<>();
+
+    public void updateCount(int count) {
+        tagCount += count;
+    }
 }

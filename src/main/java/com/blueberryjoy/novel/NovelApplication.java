@@ -58,6 +58,10 @@ public class NovelApplication {
         //novelService.createNovel("bbb ccc aaa", "d", 4L, "");
         //novelService.deleteNovel(2L);
         //Page<NovelDTO> res = novelService.searchByKeywordAndTag("ccc aaa", List.of("action", "dungeon"), 0, 10);
+        //novelService.addTag(3L, 1L);
+        //novelService.addTag(3L, 5L);
+        //novelService.addTag(4L, 1L);
+        novelService.removeTag(4L, 1L);
         Page<NovelDTO> res = novelService.searchByTags(List.of("action", "dungeon"), 0, 10);
         System.out.println(res.getTotalPages() + " " + res.getTotalElements());
         for (NovelDTO novel : res.getContent()) {

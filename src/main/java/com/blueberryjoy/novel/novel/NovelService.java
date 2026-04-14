@@ -82,6 +82,8 @@ public class NovelService {
         if (novel == null || tag == null) return false;
         if (novel.getTags().contains(tag))
             return true;
+        tag.updateCount(1);
+        tagRepository.save(tag);
         novel.addTag(tag);
         return true;
     }
@@ -91,6 +93,10 @@ public class NovelService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
         if (novel == null || tag == null) return false;
+        if (!novel.getTags().contains(tag))
+            return true;
+        tag.updateCount(-1);
+        tagRepository.save(tag);
         novel.removeTag(tag);
         return true;
     }
@@ -99,6 +105,13 @@ public class NovelService {
     public boolean deleteNovel(long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) return false;
+
+        List<Long> tagIds = novel.getTags()
+                .stream()
+                .map(Tag::getId)
+                .toList();
+        tagRepository.decreaseCount(tagIds);
+
         novel.getTags().clear();
         novelRepository.save(novel);
         chapterRepository.deleteByNovelId(novel.getId());
