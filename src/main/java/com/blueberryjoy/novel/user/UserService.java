@@ -1,10 +1,14 @@
 package com.blueberryjoy.novel.user;
 
+import com.blueberryjoy.novel.exception.models.ApiException;
 import com.blueberryjoy.novel.exception.models.BadRequestException;
-import com.blueberryjoy.novel.security.JwtResponse;
 import com.blueberryjoy.novel.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -17,12 +21,10 @@ public class UserService {
     private final UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
-    private final JwtUtils jwtUtils;
 
 
-    public UserService(UserRepository userRepository, JwtUtils jwtUtils) {
+    public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
-        this.jwtUtils = jwtUtils;
     }
 
     public User findUserByEmail(String email) {
@@ -44,15 +46,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public JwtResponse signup(Map<String, Object> body) {
+    public User signup(Map<String, Object> body) {
         String username = (String) body.get("username");
         String email = (String) body.get("email");
         String password = (String) body.get("password");
-        if (username == null || email == null || password == null) {
-            throw new BadRequestException("Please complete all required fields to proceed.");
-        }
-        User user = createUser(username, email, password);
-        String token = jwtUtils.generateToken(user.getEmail());
-        return new JwtResponse(token);
+        if (username == null || email == null || password == null)
+            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+        return createUser(username, email, password);
     }
 }

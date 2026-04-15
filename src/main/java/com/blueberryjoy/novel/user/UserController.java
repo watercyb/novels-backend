@@ -1,7 +1,10 @@
 package com.blueberryjoy.novel.user;
 
-import com.blueberryjoy.novel.security.JwtResponse;
+import com.blueberryjoy.novel.security.JwtUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +15,12 @@ import java.util.Map;
 @RequestMapping("/api/auth")
 public class UserController {
     private final UserService userService;
+    @Autowired
+    private final JwtUtils jwtUtils;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, JwtUtils jwtUtils) {
         this.userService = userService;
+        this.jwtUtils = jwtUtils;
     }
 
     @PostMapping()
@@ -22,15 +28,17 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         response.put("name", body.get("username"));
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
-        JwtResponse response = userService.signup(body);
-        return ResponseEntity.ok(response);
+        User user = userService.signup(body);
+        ResponseCookie accessCookie = jwtUtils.getAccessCookie(user.getEmail());
+        ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user.getEmail());
+        return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
     }
 
+    record UserResponse(boolean success, String message, UserDTO user) {
+    }
 }

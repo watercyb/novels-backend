@@ -1,5 +1,6 @@
 package com.blueberryjoy.novel.exception;
 
+import com.blueberryjoy.novel.exception.models.ApiException;
 import com.blueberryjoy.novel.exception.models.DuplicatedException;
 import com.blueberryjoy.novel.exception.models.NotFoundException;
 import com.blueberryjoy.novel.exception.models.UnauthorizedException;
@@ -51,7 +52,7 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         );
 
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(BadRequestException.class)
@@ -63,5 +64,11 @@ public class GlobalExceptionHandler {
         );
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handle(ApiException ex) {
+        ErrorResponse response = new ErrorResponse(false, ex.getMessage());
+        return ResponseEntity.status(ex.getStatus()).body(response);
     }
 }

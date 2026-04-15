@@ -61,11 +61,11 @@ public class NovelApplication {
         //novelService.addTag(3L, 1L);
         //novelService.addTag(3L, 5L);
         //novelService.addTag(4L, 1L);
-        novelService.removeTag(4L, 1L);
-        Page<NovelDTO> res = novelService.searchByTags(List.of("action", "dungeon"), 0, 10);
-        System.out.println(res.getTotalPages() + " " + res.getTotalElements());
-        for (NovelDTO novel : res.getContent()) {
-            System.out.println(novel);
-        }
+        //novelService.removeTag(4L, 1L);
+        //Page<NovelDTO> res = novelService.searchByTags(List.of("action", "dungeon"), 0, 10);
+        //System.out.println(res.getTotalPages() + " " + res.getTotalElements());
+        //for (NovelDTO novel : res.getContent()) {
+            //System.out.println(novel);
+        //}
     }
 }

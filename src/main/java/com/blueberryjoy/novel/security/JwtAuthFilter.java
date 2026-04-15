@@ -1,13 +1,15 @@
 package com.blueberryjoy.novel.security;
 
-import com.blueberryjoy.novel.exception.models.UnauthorizedException;
+import com.blueberryjoy.novel.exception.models.ApiException;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,27 +33,63 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
+        String path = request.getServletPath();
 
-        String authHeader = request.getHeader("Authorization");
+        if (path.startsWith("/api/auth/signup")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            String token = authHeader.substring(7);
+        String token = null;
+        Cookie[] cookies = request.getCookies();
 
-            String email = jwtUtils.extractEmail(token);
-
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                User user = userService.findUserByEmail(email);
-                if (user == null)
-                    throw new UnauthorizedException("User not found");
-
-                if (jwtUtils.isTokenValid(token, user.getEmail())) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
-                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authToken);
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("accessToken".equals(cookie.getName())) {
+                    token = cookie.getValue();
+                    break;
                 }
             }
         }
 
+        if (token != null) {
+            try {
+                String email = jwtUtils.getEmailFromAccessToken(token);
+
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    User user = userService.findUserByEmail(email);
+                    if (user == null) {
+                        returnError(response);
+                        return;
+                    }
+
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            } catch (Exception e) {
+                returnError(response);
+                return;
+            }
+        } else {
+            returnError(response);
+            return;
+        }
+
         filterChain.doFilter(request, response);
+    }
+
+    private void returnError(@NonNull HttpServletResponse response) {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        try {
+            response.getWriter().write("""
+                    {
+                      "success": false,
+                      "message": "Please login"
+                    }
+                    """);
+        } catch (IOException ignored) {
+        }
     }
 }
