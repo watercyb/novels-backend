@@ -14,14 +14,10 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 public class UserController {
-    private final UserService userService;
     @Autowired
-    private final JwtUtils jwtUtils;
-
-    public UserController(UserService userService, JwtUtils jwtUtils) {
-        this.userService = userService;
-        this.jwtUtils = jwtUtils;
-    }
+    private UserService userService;
+    @Autowired
+    private JwtUtils jwtUtils;
 
     @PostMapping()
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody Map<String, Object> body) {
@@ -34,8 +30,8 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
         User user = userService.signup(body);
-        ResponseCookie accessCookie = jwtUtils.getAccessCookie(user.getEmail());
-        ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user.getEmail());
+        ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
+        ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
     }
 

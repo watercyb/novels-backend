@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.chpater;
 
 import com.blueberryjoy.novel.novel.Novel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,11 +12,8 @@ import java.util.List;
 @Service
 public class ChapterService {
 
-    private final ChapterRepository chapterRepository;
-
-    public ChapterService(ChapterRepository chapterRepository) {
-        this.chapterRepository = chapterRepository;
-    }
+    @Autowired
+    private ChapterRepository chapterRepository;
 
     public Chapter getChapter(Long id) {
         return chapterRepository.findById(id).orElse(null);

@@ -7,6 +7,7 @@ import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -22,17 +23,14 @@ import java.util.List;
 @Service
 public class NovelService {
 
-    private final NovelRepository novelRepository;
-    private final TagRepository tagRepository;
-    private final ChapterRepository chapterRepository;
-    private final UserRepository userRepository;
-
-    public NovelService(NovelRepository novelRepository, TagRepository tagRepository, ChapterRepository chapterRepository, UserRepository userRepository) {
-        this.novelRepository = novelRepository;
-        this.tagRepository = tagRepository;
-        this.chapterRepository = chapterRepository;
-        this.userRepository = userRepository;
-    }
+    @Autowired
+    private NovelRepository novelRepository;
+    @Autowired
+    private TagRepository tagRepository;
+    @Autowired
+    private ChapterRepository chapterRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Transactional
     public NovelDTO getNovelDTO(Long id) {

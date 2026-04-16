@@ -1,8 +1,12 @@
 package com.blueberryjoy.novel.security;
 
+import com.blueberryjoy.novel.user.User;
+import com.blueberryjoy.novel.user.UserService;
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
@@ -16,6 +20,10 @@ public class JwtUtils {
     @Value("${REFRESH_SECRET}")
     private String refreshSecret;
     private SecretKey REFRESH_KEY;
+    @Value("${MODE}")
+    private String MODE;
+    @Autowired
+    private UserService userService;
 
     @PostConstruct
     public void init() {
@@ -24,61 +32,68 @@ public class JwtUtils {
 
     private final SecretKey ACCESS_KEY = Jwts.SIG.HS256.key().build();
 
-    public String generateAccessToken(String email) {
+    public String generateAccessToken(User user) {
         return Jwts.builder()
-                .subject(email)
+                .claim("userId", user.getId())
+                .claim("verification", getLastFourDigits(user.getPasswordHash()))
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + 15 * 60 * 1000))
+                .expiration(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000))
                 .signWith(ACCESS_KEY)
                 .compact();
     }
 
-    public String getEmailFromAccessToken(String token) {
-        return Jwts.parser()
-                .verifyWith(ACCESS_KEY)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
+    public User verifyAccessToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(ACCESS_KEY)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            Integer userId = claims.get("userId", Integer.class);
+            String verification = claims.get("verification", String.class);
+            if (userId == null || verification == null)
+                return null;
+            User user = userService.findUserById(userId);
+            if (user == null || !getLastFourDigits(user.getPasswordHash()).equals(verification))
+                return null;
+            return user;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(User user) {
         return Jwts.builder()
-                .subject(email)
+                .claim("userId", user.getId())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 14 * 24 * 60 * 60 * 1000))
                 .signWith(REFRESH_KEY)
                 .compact();
     }
 
-    public String getEmailFromRefreshToken(String token) {
-        return Jwts.parser()
-                .verifyWith(REFRESH_KEY)
-                .build()
-                .parseSignedClaims(token)
-                .getPayload()
-                .getSubject();
-    }
-
-    public ResponseCookie getAccessCookie(String email) {
-        String accessToken = generateAccessToken(email);
+    public ResponseCookie getAccessCookie(User user) {
+        String accessToken = generateAccessToken(user);
         return ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)      // ❌ JS cannot access it
-                .secure(false)       // true in production (HTTPS)
+                .secure(!MODE.equals("DEVELOPMENT"))       // true in production (HTTPS)
                 .path("/api/")           // available for all endpoints
-                .maxAge(15 * 60)     // 15 min
+                .maxAge(7 * 24 * 60 * 60)     // 7 day
                 .sameSite("Strict")  // CSRF protection
                 .build();
     }
 
-    public ResponseCookie getRefreshCookie(String email) {
-        String refreshToken = generateRefreshToken(email);
+    public ResponseCookie getRefreshCookie(User user) {
+        String refreshToken = generateRefreshToken(user);
         return ResponseCookie.from("refreshToken", refreshToken)
-                .httpOnly(true)      // ❌ JS cannot access it
-                .secure(false)       // true in production (HTTPS)
-                .path("/api/auth/refresh")           // available for all endpoints
-                .maxAge(14 * 24 * 60 * 60)     // 14 day
-                .sameSite("Strict")  // CSRF protection
+                .httpOnly(true)
+                .secure(!MODE.equals("DEVELOPMENT"))
+                .path("/api/auth/refresh")
+                .maxAge(14 * 24 * 60 * 60)
+                .sameSite("Strict")
                 .build();
+    }
+
+    public String getLastFourDigits(String str) {
+        return str.substring(str.length() - 4);
     }
 }

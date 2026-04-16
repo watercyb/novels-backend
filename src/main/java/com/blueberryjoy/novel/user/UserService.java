@@ -1,14 +1,9 @@
 package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.models.ApiException;
-import com.blueberryjoy.novel.exception.models.BadRequestException;
-import com.blueberryjoy.novel.security.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseCookie;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -18,14 +13,11 @@ import java.util.Map;
 @Service
 public class UserService {
 
-    private final UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
 
     public User findUserByEmail(String email) {
         return userRepository.findByEmail(email).orElse(null);
