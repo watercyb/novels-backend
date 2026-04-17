@@ -5,6 +5,7 @@ import com.blueberryjoy.novel.user.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import redis.clients.jedis.params.SetParams;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.Objects;
 
 @Component
 public class JwtUtils {
@@ -75,7 +77,25 @@ public class JwtUtils {
                 .compact();
     }
 
-    public ResponseCookie setAccessCookie(User user) {
+    public User verifyRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(REFRESH_KEY)
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            Integer userId = claims.get("userId", Integer.class);
+            if (userId == null)
+                return null;
+            String savedToken = jedis.get("Novels_RefreshToken_" + userId);
+            if (!Objects.equals(savedToken, token)) return null;
+            return userService.findUserById(userId);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public ResponseCookie getAccessCookie(User user) {
         String accessToken = generateAccessToken(user);
         return ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)      // ❌ JS cannot access it
@@ -86,7 +106,7 @@ public class JwtUtils {
                 .build();
     }
 
-    public ResponseCookie setRefreshCookie(User user) {
+    public ResponseCookie getRefreshCookie(User user) {
         String refreshToken = generateRefreshToken(user);
         jedis.set("Novels_RefreshToken_" + user.getId(), refreshToken, SetParams.setParams().ex(14 * 24 * 60 * 60));
         return ResponseCookie.from("refreshToken", refreshToken)
@@ -97,6 +117,29 @@ public class JwtUtils {
                 .sameSite("Strict")
                 .build();
     }
+
+    public ResponseCookie getEmptyAccessCookie() {
+        return ResponseCookie.from("accessToken", "")
+                .httpOnly(true)
+                .secure(!MODE.equals("DEVELOPMENT"))
+                .path("/api/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+    }
+
+    public ResponseCookie getEmptyRefreshCookie(@Nullable User user) {
+        if (user != null)
+            jedis.del("Novels_RefreshToken_" + user.getId());
+        return ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(!MODE.equals("DEVELOPMENT"))
+                .path("/api/auth/refresh")
+                .maxAge(14 * 24 * 60 * 60)
+                .sameSite("Strict")
+                .build();
+    }
+
 
     public String getLastFourDigits(String str) {
         return str.substring(str.length() - 4);

@@ -2,7 +2,6 @@ package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
-import com.blueberryjoy.novel.chpater.ChapterService;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;

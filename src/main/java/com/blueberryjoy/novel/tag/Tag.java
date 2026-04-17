@@ -2,7 +2,6 @@ package com.blueberryjoy.novel.tag;
 
 import com.blueberryjoy.novel.novel.Novel;
 import jakarta.persistence.*;
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

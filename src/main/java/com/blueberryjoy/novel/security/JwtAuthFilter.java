@@ -1,8 +1,6 @@
 package com.blueberryjoy.novel.security;
 
-import com.blueberryjoy.novel.exception.models.ApiException;
 import com.blueberryjoy.novel.user.User;
-import com.blueberryjoy.novel.user.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -10,11 +8,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,18 +26,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtUtils jwtUtils;
-    @Autowired
-    private UserService userService;
+
+    private final RequestMatcher matcher = new OrRequestMatcher(
+            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/signup"),
+            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/login"),
+            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/refresh")
+    );
+
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+        return matcher.matches(request);
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
-        String path = request.getServletPath();
-
-        if (path.startsWith("/api/auth/signup") || path.startsWith("/api/auth/login")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = null;
         Cookie[] cookies = request.getCookies();
 
@@ -49,7 +51,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 }
             }
         }
-
         if (token != null) {
             try {
                 User user = jwtUtils.verifyAccessToken(token);
@@ -57,7 +58,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     returnError(response);
                     return;
                 }
-
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

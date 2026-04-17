@@ -1,7 +1,6 @@
 package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.tag.Tag;
-import jakarta.persistence.Column;
 import lombok.Data;
 
 import java.time.LocalDateTime;
