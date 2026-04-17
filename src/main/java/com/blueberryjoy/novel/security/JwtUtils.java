@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.Jedis;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -24,6 +25,8 @@ public class JwtUtils {
     private String MODE;
     @Autowired
     private UserService userService;
+    @Autowired
+    private Jedis jedis;
 
     @PostConstruct
     public void init() {
@@ -71,7 +74,7 @@ public class JwtUtils {
                 .compact();
     }
 
-    public ResponseCookie getAccessCookie(User user) {
+    public ResponseCookie setAccessCookie(User user) {
         String accessToken = generateAccessToken(user);
         return ResponseCookie.from("accessToken", accessToken)
                 .httpOnly(true)      // ❌ JS cannot access it
@@ -82,8 +85,9 @@ public class JwtUtils {
                 .build();
     }
 
-    public ResponseCookie getRefreshCookie(User user) {
+    public ResponseCookie setRefreshCookie(User user) {
         String refreshToken = generateRefreshToken(user);
+        jedis.set("NovelRefreshToken_" + user.getId(), refreshToken);
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))

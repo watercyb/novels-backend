@@ -30,8 +30,8 @@ public class UserController {
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
         User user = userService.signup(body);
-        ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
-        ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+        ResponseCookie accessCookie = jwtUtils.setAccessCookie(user);
+        ResponseCookie refreshCookie = jwtUtils.setRefreshCookie(user);
         return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
     }
 
