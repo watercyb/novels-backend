@@ -38,13 +38,4 @@ public class UserService {
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
-
-    public User signup(Map<String, Object> body) {
-        String username = (String) body.get("username");
-        String email = (String) body.get("email");
-        String password = (String) body.get("password");
-        if (username == null || email == null || password == null)
-            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
-        return createUser(username, email, password);
-    }
 }

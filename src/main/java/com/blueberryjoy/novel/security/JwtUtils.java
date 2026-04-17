@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.params.SetParams;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -87,7 +88,7 @@ public class JwtUtils {
 
     public ResponseCookie setRefreshCookie(User user) {
         String refreshToken = generateRefreshToken(user);
-        jedis.set("NovelRefreshToken_" + user.getId(), refreshToken);
+        jedis.set("Novels_RefreshToken_" + user.getId(), refreshToken, SetParams.setParams().ex(14 * 24 * 60 * 60));
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))
