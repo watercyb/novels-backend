@@ -7,7 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.BreakIterator;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class ChapterService {
@@ -119,5 +121,29 @@ public class ChapterService {
     @Transactional
     public void deleteByNovelId(long novelId) {
         chapterRepository.deleteByNovelId(novelId);
+    }
+
+    public static int countWords(String text, Locale locale) {
+        if (text == null || text.isBlank()) {
+            return 0;
+        }
+
+        BreakIterator iterator = BreakIterator.getWordInstance(locale);
+        iterator.setText(text);
+
+        int count = 0;
+        int start = iterator.first();
+
+        for (int end = iterator.next();
+             end != BreakIterator.DONE;
+             start = end, end = iterator.next()) {
+
+            String word = text.substring(start, end);
+
+            if (Character.isLetterOrDigit(word.codePointAt(0)))
+                count++;
+        }
+
+        return count;
     }
 }

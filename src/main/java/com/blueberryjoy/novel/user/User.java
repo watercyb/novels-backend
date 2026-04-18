@@ -28,6 +28,12 @@ public class User {
     @Column(name = "avatar_url", length = 2048)
     private String avatarUrl;
 
+    private int novels;
+
+    private int chapters;
+
+    private int words;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

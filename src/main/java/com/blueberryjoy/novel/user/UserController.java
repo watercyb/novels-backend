@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -27,13 +28,12 @@ public class UserController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @PostMapping()
-    public ResponseEntity<Map<String, Object>> createUser(@RequestBody Map<String, Object> body) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("name", body.get("username"));
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    }
+    //@PostMapping()
+    //public ResponseEntity<Map<String, Object>> createUser(@RequestBody Map<String, Object> body) {
+    //Map<String, Object> response = new HashMap<>();
+    //response.put("name", body.get("username"));
+    //return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    //}
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
@@ -46,7 +46,7 @@ public class UserController {
             User user = userService.createUser(username, email, password);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
+            return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -79,7 +79,6 @@ public class UserController {
         try {
             String token = null;
             Cookie[] cookies = request.getCookies();
-
             if (cookies != null) {
                 for (Cookie cookie : cookies) {
                     if ("refreshToken".equals(cookie.getName())) {
@@ -117,6 +116,35 @@ public class UserController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<?> update(@RequestParam("avatar") MultipartFile image, @RequestParam("username") Long username) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to update user info at this time.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+
+            if (!image.isEmpty()) {
+                String contentType = image.getContentType();
+                if (contentType != null && contentType.startsWith("image/")) {
+                    if (image.getSize() > 5 * 1024 * 1024)
+                        throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                }
+            }
+
+            // Example checks
+
+
+            return ResponseEntity.ok("Uploaded successfully");
+        } catch (
+                ApiException e) {
+            throw e;
+        } catch (
+                Exception e) {
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

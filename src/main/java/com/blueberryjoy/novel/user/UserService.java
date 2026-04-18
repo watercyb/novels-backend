@@ -29,7 +29,14 @@ public class UserService {
         User user = new User();
         user.setUsername(name);
         user.setEmail(email);
+        user.setNovels(0);
+        user.setChapters(0);
+        user.setWords(0);
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
+    }
+
+    public void updateUser(User user) {
+        userRepository.save(user);
     }
 }
