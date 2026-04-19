@@ -1,6 +1,6 @@
 package com.blueberryjoy.novel.repository;
 
-import com.blueberryjoy.novel.exception.models.ApiException;
+import com.blueberryjoy.novel.exception.ApiException;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -17,17 +17,15 @@ import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class Repository {
-    @Value("${REPO_NOVEL_URL}")
-    private String novelUrl;
-    @Value("${REPO_IMAGE_URL}")
-    private String imageUrl;
+    @Value("${REPO_URL}")
+    private String repoUrl;
     @Value("${REPO_TOKEN}")
     private String token;
 
     public String uploadChapter(long novelId, String content) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(novelUrl);
+                HttpPost post = new HttpPost(repoUrl+"chapter.php");
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
                         .addTextBody("novel_id", String.valueOf(novelId))
@@ -54,7 +52,7 @@ public class Repository {
     public String uploadChapter(long novelId, String filename, String content) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(novelUrl);
+                HttpPost post = new HttpPost(repoUrl+"chapter.php");
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
                         .addTextBody("novel_id", String.valueOf(novelId))
@@ -84,7 +82,7 @@ public class Repository {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(imageUrl);
+                HttpPost post = new HttpPost(repoUrl+"image.php");
 
                 byte[] bytes = file.getBytes();
 

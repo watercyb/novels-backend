@@ -1,9 +1,11 @@
 package com.blueberryjoy.novel.user;
 
-import com.blueberryjoy.novel.exception.models.ApiException;
+import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.repository.Repository;
 import com.blueberryjoy.novel.security.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -26,6 +28,10 @@ public class UserController {
     private JwtUtils jwtUtils;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private Repository repository;
+    @Value("${REPO_URL}")
+    private String repoUrl;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
@@ -113,30 +119,59 @@ public class UserController {
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> update(@RequestParam("avatar") MultipartFile image, @RequestParam("username") Long username) {
+    public ResponseEntity<?> update(@RequestParam(value = "avatar", required = false) MultipartFile image, @RequestParam(value = "username", required = false) String username) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to update user info at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
 
-            if (!image.isEmpty()) {
+            if (image != null && !image.isEmpty()) {
                 String contentType = image.getContentType();
                 if (contentType != null && contentType.startsWith("image/")) {
                     if (image.getSize() > 5 * 1024 * 1024)
                         throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                    String fileName = repository.uploadImage(image, user.getId());
+                    if (fileName == null || fileName.isEmpty())
+                        throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
+                    user.setAvatarUrl(repoUrl + "images/" + fileName);
                 }
             }
+            if (username != null && !username.isEmpty()) user.setUsername(username);
 
-            // Example checks
-
-
-            return ResponseEntity.ok("Uploaded successfully");
-        } catch (
-                ApiException e) {
+            userService.updateUser(user);
+            return ResponseEntity.ok().body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
+        } catch (ApiException e) {
             throw e;
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/update_password")
+    public ResponseEntity<?> update(@RequestBody Map<String, Object> body) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to update password at this time.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            String oldPassword = (String) body.get("oldPassword");
+            String newPassword = (String) body.get("newPassword");
+            if (!passwordEncoder.matches(oldPassword, user.getPasswordHash()))
+                throw new ApiException("Unable to update password at this time.", HttpStatus.BAD_REQUEST);
+            if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty())
+                throw new ApiException("Password cannot be empty.", HttpStatus.BAD_REQUEST);
+            if (newPassword.equals(oldPassword))
+                throw new ApiException("New password must be different from your current password.", HttpStatus.BAD_REQUEST);
+            userService.updatePassword(user, newPassword);
+            ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
+            ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

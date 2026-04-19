@@ -1,4 +1,4 @@
-package com.blueberryjoy.novel.exception.models;
+package com.blueberryjoy.novel.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
