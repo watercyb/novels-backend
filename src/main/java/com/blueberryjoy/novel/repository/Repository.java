@@ -24,7 +24,7 @@ public class Repository {
     @Value("${REPO_TOKEN}")
     private String token;
 
-    public UploadResponse uploadNovel(long novelId, String content) {
+    public String uploadChapter(long novelId, String content) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(novelUrl);
@@ -39,9 +39,11 @@ public class Repository {
                 try (CloseableHttpResponse response = client.execute(post)) {
                     String json = EntityUtils.toString(response.getEntity());
                     ObjectMapper mapper = new ObjectMapper();
-                    return mapper.readValue(json, UploadResponse.class);
+                    UploadResponse res = mapper.readValue(json, UploadResponse.class);
+                    if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return res.filename;
                 } catch (ParseException e) {
-                    throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("Cannot upload file", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (Exception e) {
@@ -49,7 +51,35 @@ public class Repository {
         }
     }
 
-    public UploadResponse uploadImage(MultipartFile file, long userId) {
+    public String uploadChapter(long novelId, String filename, String content) {
+        try {
+            try (CloseableHttpClient client = HttpClients.createDefault()) {
+                HttpPost post = new HttpPost(novelUrl);
+                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
+                        .addTextBody("token", token)
+                        .addTextBody("novel_id", String.valueOf(novelId))
+                        .addTextBody("filename", filename)
+                        .addTextBody("content", content)
+                        .build();
+
+                post.setEntity(entity);
+
+                try (CloseableHttpResponse response = client.execute(post)) {
+                    String json = EntityUtils.toString(response.getEntity());
+                    ObjectMapper mapper = new ObjectMapper();
+                    UploadResponse res = mapper.readValue(json, UploadResponse.class);
+                    if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return res.filename;
+                } catch (ParseException e) {
+                    throw new ApiException("Cannot update file", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public String uploadImage(MultipartFile file, long userId) {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -67,7 +97,9 @@ public class Repository {
                 try (CloseableHttpResponse response = client.execute(post)) {
                     String json = EntityUtils.toString(response.getEntity());
                     ObjectMapper mapper = new ObjectMapper();
-                    return mapper.readValue(json, UploadResponse.class);
+                    UploadResponse res = mapper.readValue(json, UploadResponse.class);
+                    if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return res.filename;
                 } catch (ParseException e) {
                     throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
                 }

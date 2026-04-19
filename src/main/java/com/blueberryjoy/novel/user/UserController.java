@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -27,13 +26,6 @@ public class UserController {
     private JwtUtils jwtUtils;
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    //@PostMapping()
-    //public ResponseEntity<Map<String, Object>> createUser(@RequestBody Map<String, Object> body) {
-    //Map<String, Object> response = new HashMap<>();
-    //response.put("name", body.get("username"));
-    //return ResponseEntity.status(HttpStatus.CREATED).body(response);
-    //}
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
