@@ -27,16 +27,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
 
-    private final RequestMatcher matcher = new OrRequestMatcher(
-            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/signup"),
-            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/login"),
-            PathPatternRequestMatcher.withDefaults().matcher("/api/auth/refresh")
-    );
+    //private final RequestMatcher matcher = new OrRequestMatcher(
+    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/signup"),
+    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/login"),
+    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/refresh")
+    //);
 
-    @Override
-    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-        return matcher.matches(request);
-    }
+    //@Override
+    //protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
+    //return matcher.matches(request);
+    // }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
@@ -54,22 +54,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (token != null) {
             try {
                 User user = jwtUtils.verifyAccessToken(token);
-                if (user == null) {
-                    returnError(response);
-                    return;
+                if (user != null) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            } catch (Exception e) {
-                returnError(response);
-                return;
+            } catch (Exception ignored) {
             }
-        } else {
-            returnError(response);
-            return;
         }
-
         filterChain.doFilter(request, response);
     }
 

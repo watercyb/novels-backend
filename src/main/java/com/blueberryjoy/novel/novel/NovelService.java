@@ -31,7 +31,7 @@ public class NovelService {
     private UserRepository userRepository;
 
     @Transactional
-    public NovelDTO getNovelDTO(Long id) {
+    public NovelDTO getNovel(Long id) {
         Novel novel = novelRepository.findById(id).orElse(null);
         if (novel == null) return null;
         return new NovelDTO(novel);
@@ -64,6 +64,16 @@ public class NovelService {
     @Transactional
     public List<NovelDTO> getNovels(User user) {
         List<Novel> list = novelRepository.findNovels(user.getId());
+        List<NovelDTO> novelDTOs = new ArrayList<>();
+        for (Novel novel : list) {
+            novelDTOs.add(new NovelDTO(novel));
+        }
+        return novelDTOs;
+    }
+
+    @Transactional
+    public List<NovelDTO> getNovels(long UserId) {
+        List<Novel> list = novelRepository.findNovels(UserId);
         List<NovelDTO> novelDTOs = new ArrayList<>();
         for (Novel novel : list) {
             novelDTOs.add(new NovelDTO(novel));
