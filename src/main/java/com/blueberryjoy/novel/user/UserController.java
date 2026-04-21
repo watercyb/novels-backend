@@ -124,26 +124,25 @@ public class UserController {
 
     @PostMapping("/update")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> update(@RequestParam(value = "avatar", required = false) MultipartFile image, @RequestParam(value = "username", required = false) String username) {
+    public ResponseEntity<?> update(@RequestParam(value = "avatarImage", required = false) MultipartFile avatarImage, @RequestParam(value = "username", required = false) String username) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to update user info at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
 
-            if (image != null && !image.isEmpty()) {
-                String contentType = image.getContentType();
+            if (avatarImage != null && !avatarImage.isEmpty()) {
+                String contentType = avatarImage.getContentType();
                 if (contentType != null && contentType.startsWith("image/")) {
-                    if (image.getSize() > 5 * 1024 * 1024)
+                    if (avatarImage.getSize() > 5 * 1024 * 1024)
                         throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                    String fileName = repository.uploadImage(image, user.getId());
+                    String fileName = repository.uploadAvatar(avatarImage, user.getId());
                     if (fileName == null || fileName.isEmpty())
                         throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
-                    user.setAvatarUrl(repoUrl + "images/" + fileName);
+                    user.setAvatarUrl(fileName);
                 }
             }
             if (username != null && !username.isEmpty()) user.setUsername(username);
-
             userService.updateUser(user);
             return ResponseEntity.ok().body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
         } catch (ApiException e) {

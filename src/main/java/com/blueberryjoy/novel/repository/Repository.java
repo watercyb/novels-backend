@@ -25,7 +25,7 @@ public class Repository {
     public String uploadChapter(long novelId, String content) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl+"chapter.php");
+                HttpPost post = new HttpPost(repoUrl + "chapter.php");
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
                         .addTextBody("novel_id", String.valueOf(novelId))
@@ -52,7 +52,7 @@ public class Repository {
     public String uploadChapter(long novelId, String filename, String content) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl+"chapter.php");
+                HttpPost post = new HttpPost(repoUrl + "chapter.php");
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
                         .addTextBody("novel_id", String.valueOf(novelId))
@@ -77,12 +77,12 @@ public class Repository {
         }
     }
 
-    public String uploadImage(MultipartFile file, long userId) {
+    public String uploadAvatar(MultipartFile file, long userId) {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl+"image.php");
+                HttpPost post = new HttpPost(repoUrl + "avatar.php");
 
                 byte[] bytes = file.getBytes();
 
@@ -97,7 +97,7 @@ public class Repository {
                     ObjectMapper mapper = new ObjectMapper();
                     UploadResponse res = mapper.readValue(json, UploadResponse.class);
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                    return res.filename;
+                    return repoUrl + res.filename;
                 } catch (ParseException e) {
                     throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
@@ -107,6 +107,35 @@ public class Repository {
         }
     }
 
+    public String uploadNovelCover(MultipartFile file, long novelId) {
+        try {
+            if (file == null || file.isEmpty())
+                throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            try (CloseableHttpClient client = HttpClients.createDefault()) {
+                HttpPost post = new HttpPost(repoUrl + "image.php");
+
+                byte[] bytes = file.getBytes();
+
+                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
+                        .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, file.getOriginalFilename())
+                        .addTextBody("token", token).addTextBody("novel_id", String.valueOf(novelId)).build();
+
+                post.setEntity(entity);
+
+                try (CloseableHttpResponse response = client.execute(post)) {
+                    String json = EntityUtils.toString(response.getEntity());
+                    ObjectMapper mapper = new ObjectMapper();
+                    UploadResponse res = mapper.readValue(json, UploadResponse.class);
+                    if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
+                    return repoUrl + res.filename;
+                } catch (ParseException e) {
+                    throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     public record UploadResponse(boolean success, String message, String filename) {
     }

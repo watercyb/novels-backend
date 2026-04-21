@@ -38,27 +38,16 @@ public class NovelService {
     }
 
     @Transactional
-    public Novel createNovel(String title, String description, long userId, String coverUrl) {
-        User user = userRepository.findById(userId).orElse(null);
+    public Novel createNovel(String title, String description, User user, String coverUrl) {
         if (user == null) return null;
-
         Novel novel = new Novel();
         novel.setTitle(title);
         novel.setDescription(description);
         novel.setAuthor(user);
         novel.setCoverUrl(coverUrl);
-
         novel.setLastChapterTitle("");
         novel = novelRepository.save(novel);
-
-        Chapter chapter = new Chapter();
-        chapter.setTitle("");
-        chapter.setNovel(novel);
-        chapter.setOrderIndex(BigDecimal.ZERO);
-        chapterRepository.save(chapter);
-
-        novel.setLastUpdatedAt(chapter.getUpdatedAt());
-        return novelRepository.save(novel);
+        return novel;
     }
 
     @Transactional
@@ -144,5 +133,10 @@ public class NovelService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Novel> novels = novelRepository.searchByTags(tags, pageable);
         return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Novel save(Novel novel) {
+        return novelRepository.save(novel);
     }
 }

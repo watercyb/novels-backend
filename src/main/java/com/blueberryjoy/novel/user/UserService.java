@@ -44,4 +44,14 @@ public class UserService {
     public void updateUser(User user) {
         userRepository.save(user);
     }
+
+    public void updateAvatar(User user, String avatarUrl) {
+        user.setAvatarUrl(avatarUrl);
+        userRepository.save(user);
+    }
+
+    public void updateNovels(User user, int n) {
+        user.setNovels(user.getNovels() + n);
+        userRepository.save(user);
+    }
 }
