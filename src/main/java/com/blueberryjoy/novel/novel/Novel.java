@@ -42,11 +42,14 @@ public class Novel {
     )
     private Set<Tag> tags = new HashSet<>();
 
-    private int likes;
+    @Column(name = "like_count", nullable = false)
+    private int likeCount;
 
-    private int chapters;
+    @Column(name = "chapter_count", nullable = false)
+    private int chapterCount;
 
-    private int words;
+    @Column(name = "word_count", nullable = false)
+    private int wordCount;
 
     @Column(name = "last_chapter_title", nullable = false)
     private String lastChapterTitle;

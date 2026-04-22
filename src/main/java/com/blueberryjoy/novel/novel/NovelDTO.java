@@ -15,9 +15,9 @@ public class NovelDTO {
     private long userId;
     private String coverUrl;
     private List<String> tags;
-    private int likes;
-    private int chapters;
-    private int words;
+    private int likeCount;
+    private int chapterCount;
+    private int wordCount;
     private String lastChapterTitle;
     private LocalDateTime lastUpdatedAt;
     private LocalDateTime createdAt;
@@ -32,9 +32,9 @@ public class NovelDTO {
         for (Tag tag : novel.getTags()) {
             tags.add(tag.getName());
         }
-        likes = novel.getLikes();
-        chapters = novel.getChapters();
-        words = novel.getWords();
+        likeCount = novel.getLikeCount();
+        chapterCount = novel.getChapterCount();
+        wordCount = novel.getWordCount();
         lastChapterTitle = novel.getLastChapterTitle();
         lastUpdatedAt = novel.getLastUpdatedAt();
         createdAt = novel.getCreatedAt();

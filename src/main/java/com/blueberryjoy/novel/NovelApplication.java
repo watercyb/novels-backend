@@ -2,7 +2,7 @@ package com.blueberryjoy.novel;
 
 import com.blueberryjoy.novel.chpater.ChapterService;
 import com.blueberryjoy.novel.novel.NovelService;
-import com.blueberryjoy.novel.repository.Repository;
+import com.blueberryjoy.novel.file.FileService;
 import com.blueberryjoy.novel.user.UserService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,6 +18,6 @@ public class NovelApplication {
         UserService userService = context.getBean(UserService.class);
         NovelService novelService = context.getBean(NovelService.class);
         ChapterService chapterService = context.getBean(ChapterService.class);
-        Repository repository = context.getBean(Repository.class);
+        FileService fileService = context.getBean(FileService.class);
     }
 }

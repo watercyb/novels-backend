@@ -29,16 +29,16 @@ public class UserService {
         User user = new User();
         user.setUsername(name);
         user.setEmail(email);
-        user.setNovels(0);
-        user.setChapters(0);
-        user.setWords(0);
+        user.setNovelCount(0);
+        user.setChapterCount(0);
+        user.setWordCount(0);
         user.setPasswordHash(passwordEncoder.encode(password));
         return userRepository.save(user);
     }
 
-    public User updatePassword(User user, String password) {
+    public void updatePassword(User user, String password) {
         user.setPasswordHash(passwordEncoder.encode(password));
-        return userRepository.save(user);
+        userRepository.save(user);
     }
 
     public void updateUser(User user) {
@@ -47,11 +47,6 @@ public class UserService {
 
     public void updateAvatar(User user, String avatarUrl) {
         user.setAvatarUrl(avatarUrl);
-        userRepository.save(user);
-    }
-
-    public void updateNovels(User user, int n) {
-        user.setNovels(user.getNovels() + n);
         userRepository.save(user);
     }
 }

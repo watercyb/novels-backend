@@ -28,13 +28,20 @@ public class User {
     @Column(name = "avatar_url", length = 2048)
     private String avatarUrl;
 
-    private int novels;
+    @Column(name = "novel_count", length = 2048)
+    private int novelCount;
 
-    private int chapters;
+    @Column(name = "chapter_count", length = 2048)
+    private int chapterCount;
 
-    private int words;
+    @Column(name = "word_count", length = 2048)
+    private int wordCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void updateNovelCount(int n) {
+        novelCount += n;
+    }
 }

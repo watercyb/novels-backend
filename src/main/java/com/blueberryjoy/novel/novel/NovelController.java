@@ -1,13 +1,8 @@
 package com.blueberryjoy.novel.novel;
 
-import com.blueberryjoy.novel.chpater.Chapter;
-import com.blueberryjoy.novel.chpater.ChapterService;
 import com.blueberryjoy.novel.exception.ApiException;
-import com.blueberryjoy.novel.repository.Repository;
 import com.blueberryjoy.novel.user.User;
-import com.blueberryjoy.novel.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +11,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -24,14 +18,6 @@ import java.util.List;
 public class NovelController {
     @Autowired
     private NovelService novelService;
-    @Value("${REPO_URL}")
-    private String repoUrl;
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private Repository repository;
-    @Autowired
-    private ChapterService chapterService;
 
     @GetMapping("/{novelId}")
     public ResponseEntity<?> getNovelById(@PathVariable Long novelId) {
@@ -69,28 +55,26 @@ public class NovelController {
             if (title == null) throw new ApiException("Title cannot be empty.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (description == null) description = "";
-            String coverUrl = "";
+            NovelDTO novel = novelService.createNovel(title, description, user, coverImage);
+            return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
-            Novel novel = novelService.createNovel(title, description, user, coverUrl);
-
-            if (coverImage != null && !coverImage.isEmpty()) {
-                String contentType = coverImage.getContentType();
-                if (contentType != null && contentType.startsWith("image/")) {
-                    if (coverImage.getSize() > 5 * 1024 * 1024)
-                        throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                    String fileName = repository.uploadNovelCover(coverImage, novel.getId());
-                    if (fileName == null || fileName.isEmpty())
-                        throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
-                    novel.setCoverUrl(fileName);
-                }
-            }
-
-            Chapter chapter = chapterService.createChapter("", novel, null, null, BigDecimal.ZERO);
-            novel.setLastUpdatedAt(chapter.getUpdatedAt());
-            novel = novelService.save(novel);
-            userService.updateNovels(user, 1);
-
-            return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", new NovelDTO(novel)));
+    @DeleteMapping("/{novelId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> deleteNovelById(@PathVariable Long novelId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to delete novel at this time.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            novelService.deleteById(user, novelId);
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Novel deleted", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -98,6 +82,45 @@ public class NovelController {
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    @PutMapping("/{novelId}/tags/{tagId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> addTag(@PathVariable Long novelId, @PathVariable Long tagId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+            novelService.addTag(user, novelId, tagId);
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/{novelId}/tags/{tagId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> removeTag(@PathVariable Long novelId, @PathVariable Long tagId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+            novelService.removeTag(user, novelId, tagId);
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 
     record NovelResponse(boolean success, String message, NovelDTO novel) {
     }

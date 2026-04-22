@@ -34,7 +34,11 @@ public class Chapter {
     @Column(precision = 10, scale = 4)
     private BigDecimal orderIndex;
 
-    private int views;
+    @Column(name = "view_count", nullable = false)
+    private int viewCount;
+
+    @Column(name = "word_count", nullable = false)
+    private int wordCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -41,11 +41,11 @@ public class ChapterService {
         return chapterRepository.save(chapter);
     }
 
-    public List<ChapterPreviewDTO> getChapters(Novel novel) {
+    public List<ChapterDTO> getChapters(Novel novel) {
         return chapterRepository.findChapterPreview(novel.getId());
     }
 
-    public List<ChapterPreviewDTO> getChapters(long novelId) {
+    public List<ChapterDTO> getChapters(long novelId) {
         return chapterRepository.findChapterPreview(novelId);
     }
 
