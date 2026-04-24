@@ -3,6 +3,8 @@ package com.blueberryjoy.novel.novel;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,14 +35,28 @@ public class NovelController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getNovelsByUserId(@RequestParam(required = false) Long userId) {
+    public ResponseEntity<?> getNovelsByUserId(@RequestParam(required = false) Long userId, @RequestParam(required = false) String title, @RequestParam(required = false) List<Long> tagIds, Pageable pageable) {
         try {
-            if (userId == null) throw new ApiException("User not found", HttpStatus.BAD_REQUEST);
-            List<NovelDTO> novels = novelService.getNovels(userId);
-            return ResponseEntity.status(HttpStatus.OK).body(novels);
+            if (userId == null && title == null && tagIds == null) {
+                Page<NovelDTO> novels = novelService.getAllNovels(pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
+            } else if (userId != null) {
+                Page<NovelDTO> novels = novelService.getNovelsByUserId(userId, pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
+            } else if (title == null) {
+                Page<NovelDTO> novels = novelService.searchByTags(tagIds, pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
+            } else if (tagIds == null) {
+                Page<NovelDTO> novels = novelService.searchByKeyword(title, pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
+            } else {
+                Page<NovelDTO> novels = novelService.searchByKeywordAndTag(title, tagIds, pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
+            }
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -56,7 +72,7 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (description == null) description = "";
             NovelDTO novel = novelService.createNovel(title, description, user, coverImage);
-            return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel));
+            return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -74,7 +90,7 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             novelService.deleteById(user, novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Novel deleted", null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Novel deleted", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -93,7 +109,7 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
             novelService.addTag(user, novelId, tagId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -112,7 +128,7 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
             novelService.removeTag(user, novelId, tagId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -122,6 +138,6 @@ public class NovelController {
     }
 
 
-    record NovelResponse(boolean success, String message, NovelDTO novel) {
+    record NovelResponse(boolean success, String message, NovelDTO novel, PageDTO<NovelDTO> page) {
     }
 }

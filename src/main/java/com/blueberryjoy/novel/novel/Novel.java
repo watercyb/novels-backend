@@ -11,7 +11,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "novels", indexes = {@Index(name = "idx_author_created", columnList = "user_id, created_at DESC")})
+@Table(
+        name = "novels",
+        indexes = {
+                @Index(name = "idx_author_created", columnList = "user_id, created_at DESC"),
+                @Index(name = "idx_user_title", columnList = "user_id, title"),
+                @Index(name = "idx_user_like", columnList = "user_id, like_count DESC"),
+                @Index(name = "idx_user_chapter", columnList = "user_id, chapter_count DESC"),
+                @Index(name = "idx_user_word", columnList = "user_id, word_count DESC"),
+                @Index(name = "idx_user_last", columnList = "user_id, last_updated_at DESC")
+        }
+)
 @Getter
 @Setter
 public class Novel {
@@ -38,7 +48,12 @@ public class Novel {
     @JoinTable(
             name = "novel_tags",
             joinColumns = @JoinColumn(name = "novel_id"),
-            inverseJoinColumns = @JoinColumn(name = "tag_id")
+            inverseJoinColumns = @JoinColumn(name = "tag_id"),
+            indexes = {
+                    @Index(name = "idx_novel_tags_tag_id", columnList = "tag_id"),
+                    @Index(name = "idx_novel_tags_novel_id", columnList = "novel_id"),
+                    @Index(name = "idx_novel_tags_tag_novel", columnList = "tag_id, novel_id")
+            }
     )
     private Set<Tag> tags = new HashSet<>();
 

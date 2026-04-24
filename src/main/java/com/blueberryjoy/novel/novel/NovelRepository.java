@@ -17,19 +17,17 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
                 MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
                 FROM novels n
                 JOIN novel_tags nt ON n.novel_id = nt.novel_id
-                JOIN tags t ON t.tag_id = nt.tag_id
-                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND t.tag_name IN (:tags)
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
                 ORDER BY score DESC
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
                     FROM novels n
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
-                    JOIN tags t ON t.tag_id = nt.tag_id
-                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND t.tag_name IN (:tags)
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordAndTag(String keyword, List<String> tags, Pageable pageable);
+    Page<Novel> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable);
 
     @Query(value = """
             SELECT n.*,
@@ -50,16 +48,38 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
             SELECT DISTINCT n.*
             FROM novels n
             JOIN novel_tags nt ON n.novel_id = nt.novel_id
-            JOIN tags t ON t.tag_id = nt.tag_id
-            WHERE t.tag_name IN (:tags)
+            WHERE nt.tag_id IN (:tags)
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
                     FROM novels n
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
-                    JOIN tags t ON t.tag_id = nt.tag_id
-                    WHERE t.tag_name IN (:tags)
+                    WHERE nt.tag_id IN (:tags)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByTags(List<String> tags, Pageable pageable);
+    Page<Novel> searchByTags(List<Long> tags, Pageable pageable);
+
+    @Query(value = """
+            SELECT DISTINCT n.*
+            FROM novels n
+            WHERE n.user_id = :userId
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n
+                    WHERE n.user_id = :userId
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByUseId(long userId, Pageable pageable);
+
+    @Query(value = """
+            SELECT DISTINCT n.*
+            FROM novels n
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n
+                    """,
+            nativeQuery = true)
+    Page<Novel> queryAllNovels(Pageable pageable);
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -138,23 +139,40 @@ public class NovelService {
     }
 
     @Transactional
-    public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<String> tags, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable) {
+        System.out.println(keyword);
         Page<Novel> novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> searchByKeyword(String keyword, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<NovelDTO> searchByKeyword(String keyword, Pageable pageable) {
         Page<Novel> novels = novelRepository.searchByKeyword(keyword, pageable);
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> searchByTags(List<String> tags, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<NovelDTO> searchByTags(List<Long> tags, Pageable pageable) {
         Page<Novel> novels = novelRepository.searchByTags(tags, pageable);
+        return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Page<NovelDTO> searchByUserId(long userId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Novel> novels = novelRepository.searchByUseId(userId, pageable);
+        return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Page<NovelDTO> getNovelsByUserId(long userId, Pageable pageable) {
+        Page<Novel> novels = novelRepository.searchByUseId(userId, pageable);
+        return novels.map(NovelDTO::new);
+    }
+
+    @Transactional
+    public Page<NovelDTO> getAllNovels(Pageable pageable) {
+        Page<Novel> novels = novelRepository.queryAllNovels(pageable);
         return novels.map(NovelDTO::new);
     }
 
