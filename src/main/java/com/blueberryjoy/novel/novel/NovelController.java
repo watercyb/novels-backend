@@ -4,7 +4,9 @@ import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,12 +16,14 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/novels")
 public class NovelController {
     @Autowired
     private NovelService novelService;
+    private static final Set<String> allowedFields = Set.of("title", "like_count", "chapter_count", "word_count", "last_updated_at");
 
     @GetMapping("/{novelId}")
     public ResponseEntity<?> getNovelById(@PathVariable Long novelId) {
@@ -37,6 +41,7 @@ public class NovelController {
     @GetMapping
     public ResponseEntity<?> getNovelsByUserId(@RequestParam(required = false) Long userId, @RequestParam(required = false) String title, @RequestParam(required = false) List<Long> tagIds, Pageable pageable) {
         try {
+            pageable = filterPageable(pageable);
             if (userId == null && title == null && tagIds == null) {
                 Page<NovelDTO> novels = novelService.getAllNovels(pageable);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
@@ -137,6 +142,19 @@ public class NovelController {
         }
     }
 
+    public static Pageable filterPageable(Pageable pageable) {
+        Sort sort = Sort.by(
+                pageable.getSort().stream()
+                        .filter(o -> allowedFields.contains(o.getProperty()))
+                        .toList()
+        );
+
+        return PageRequest.of(
+                pageable.getPageNumber(),
+                pageable.getPageSize(),
+                sort
+        );
+    }
 
     record NovelResponse(boolean success, String message, NovelDTO novel, PageDTO<NovelDTO> page) {
     }

@@ -140,14 +140,23 @@ public class NovelService {
 
     @Transactional
     public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable) {
-        System.out.println(keyword);
-        Page<Novel> novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+        Page<Novel> novels = null;
+        if (pageable.getSort().isSorted()) {
+            novels = novelRepository.searchByKeywordAndTagSort(keyword, tags, pageable);
+        } else {
+            novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+        }
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
     public Page<NovelDTO> searchByKeyword(String keyword, Pageable pageable) {
-        Page<Novel> novels = novelRepository.searchByKeyword(keyword, pageable);
+        Page<Novel> novels = null;
+        if (pageable.getSort().isSorted()) {
+            novels = novelRepository.searchByKeywordSort(keyword, pageable);
+        } else {
+            novels = novelRepository.searchByKeyword(keyword, pageable);
+        }
         return novels.map(NovelDTO::new);
     }
 

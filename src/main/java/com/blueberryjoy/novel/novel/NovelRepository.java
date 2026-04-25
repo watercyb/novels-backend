@@ -30,6 +30,22 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     Page<Novel> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable);
 
     @Query(value = """
+                SELECT DISTINCT n.*,
+                MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+                FROM novels n
+                JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n
+                    JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordAndTagSort(String keyword, List<Long> tags, Pageable pageable);
+
+    @Query(value = """
             SELECT n.*,
                    MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
             FROM novels n
@@ -43,6 +59,20 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
                     """,
             nativeQuery = true)
     Page<Novel> searchByKeyword(String keyword, Pageable pageable);
+
+    @Query(value = """
+            SELECT n.*,
+                   MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+            FROM novels n
+            WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+            """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM novels n
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordSort(String keyword, Pageable pageable);
 
     @Query(value = """
             SELECT DISTINCT n.*
