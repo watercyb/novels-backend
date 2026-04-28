@@ -11,6 +11,9 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
     Optional<Tag> findByName(String name);
 
     @Modifying
-    @Query("UPDATE Tag t SET t.tagCount = t.tagCount - 1 WHERE t.id IN :tagIds")
+    @Query("UPDATE Tag t SET t.tagUsage = t.tagUsage - 1 WHERE t.id IN :tagIds")
     void decreaseCount(List<Long> tagIds);
+
+    @Query("SELECT new com.blueberryjoy.novel.tag.TagDTO(t.id, t.name, t.tagUsage) FROM Tag t")
+    List<TagDTO> findAllDTO();
 }

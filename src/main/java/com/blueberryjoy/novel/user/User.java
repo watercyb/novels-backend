@@ -37,6 +37,9 @@ public class User {
     @Column(name = "word_count", length = 2048)
     private int wordCount;
 
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -44,4 +47,9 @@ public class User {
     public void updateNovelCount(int n) {
         novelCount += n;
     }
+
+    public enum Role {
+        USER, ADMIN, SUPERADMIN
+    }
+
 }

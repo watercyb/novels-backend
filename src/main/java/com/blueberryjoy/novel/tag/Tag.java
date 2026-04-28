@@ -21,13 +21,13 @@ public class Tag {
     @Column(name = "tag_name", unique = true, nullable = false)
     private String name;
 
-    @Column(name = "tag_count", nullable = false)
-    private int tagCount;
+    @Column(name = "tag_usage", nullable = false)
+    private int tagUsage;
 
-    @ManyToMany(mappedBy = "tags")
+    @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     private Set<Novel> novels = new HashSet<>();
 
     public void updateCount(int count) {
-        tagCount += count;
+        tagUsage += count;
     }
 }

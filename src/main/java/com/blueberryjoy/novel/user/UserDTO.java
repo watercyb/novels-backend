@@ -13,6 +13,7 @@ public class UserDTO {
     private final int novelCount;
     private final int chapterCount;
     private final int wordCount;
+    private final User.Role role;
     private final LocalDateTime createdAt;
 
     public UserDTO(User user) {
@@ -23,6 +24,7 @@ public class UserDTO {
         novelCount = user.getNovelCount();
         chapterCount = user.getChapterCount();
         wordCount = user.getWordCount();
+        role = user.getRole();
         createdAt = user.getCreatedAt();
     }
 }

@@ -27,17 +27,6 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     @Autowired
     private JwtUtils jwtUtils;
 
-    //private final RequestMatcher matcher = new OrRequestMatcher(
-    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/signup"),
-    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/login"),
-    //PathPatternRequestMatcher.withDefaults().matcher("/api/auth/refresh")
-    //);
-
-    //@Override
-    //protected boolean shouldNotFilter(@NonNull HttpServletRequest request) {
-    //return matcher.matches(request);
-    // }
-
     @Override
     protected void doFilterInternal(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull FilterChain filterChain) throws ServletException, IOException {
         String token = null;
@@ -55,7 +44,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             try {
                 User user = jwtUtils.verifyAccessToken(token);
                 if (user != null) {
-                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority("ROLE_USER")));
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(user, null, List.of(new SimpleGrantedAuthority(user.getRole().toString())));
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
@@ -63,19 +52,5 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
-    }
-
-    private void returnError(@NonNull HttpServletResponse response) {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        try {
-            response.getWriter().write("""
-                    {
-                      "success": false,
-                      "message": "Please login"
-                    }
-                    """);
-        } catch (IOException ignored) {
-        }
     }
 }
