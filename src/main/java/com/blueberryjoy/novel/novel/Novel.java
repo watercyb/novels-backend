@@ -14,7 +14,11 @@ import java.util.Set;
 @Table(
         name = "novels",
         indexes = {
-                @Index(name = "idx_author_created", columnList = "user_id, created_at DESC"),
+                @Index(name = "idx_like", columnList = "like_count DESC"),
+                @Index(name = "idx_chapter", columnList = "chapter_count DESC"),
+                @Index(name = "idx_word", columnList = "word_count DESC"),
+                @Index(name = "idx_last", columnList = "last_updated_at DESC"),
+                    @Index(name = "idx_author_created", columnList = "user_id, created_at DESC"),
                 @Index(name = "idx_user_title", columnList = "user_id, title"),
                 @Index(name = "idx_user_like", columnList = "user_id, like_count DESC"),
                 @Index(name = "idx_user_chapter", columnList = "user_id, chapter_count DESC"),

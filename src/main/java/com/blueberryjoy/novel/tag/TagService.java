@@ -28,7 +28,6 @@ public class TagService {
 
     @Transactional
     public TagDTO update(long id, String name, String nameCN, Integer count) {
-        System.out.println(tagRepository.findByNameCN(nameCN).orElse(null));
         if (tagRepository.findByName(name).orElse(null) != null || tagRepository.findByNameCN(nameCN).orElse(null) != null)
             throw new ApiException("Tag name exists", HttpStatus.BAD_REQUEST);
         Tag tag = tagRepository.findById(id).orElse(null);

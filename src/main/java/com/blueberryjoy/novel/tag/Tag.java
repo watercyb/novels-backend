@@ -11,6 +11,7 @@ import java.util.Set;
 @Entity
 @Table(
         name = "tags",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"tag_name", "tag_name_cn"}),
         indexes = {
                 @Index(name = "idx_name", columnList = "tag_name"),
                 @Index(name = "idx_nameCN", columnList = "tag_name_cn")

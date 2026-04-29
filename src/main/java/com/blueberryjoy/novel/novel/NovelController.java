@@ -30,7 +30,7 @@ public class NovelController {
         try {
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             NovelDTO novel = novelService.getNovel(novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(novel);
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", novel, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
