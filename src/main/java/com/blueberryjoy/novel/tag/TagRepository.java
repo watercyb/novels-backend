@@ -10,10 +10,12 @@ import java.util.Optional;
 public interface TagRepository extends JpaRepository<Tag, Long> {
     Optional<Tag> findByName(String name);
 
+    Optional<Tag> findByNameCN(String nameCN);
+
     @Modifying
     @Query("UPDATE Tag t SET t.tagUsage = t.tagUsage - 1 WHERE t.id IN :tagIds")
     void decreaseCount(List<Long> tagIds);
 
-    @Query("SELECT new com.blueberryjoy.novel.tag.TagDTO(t.id, t.name, t.tagUsage) FROM Tag t")
+    @Query("SELECT new com.blueberryjoy.novel.tag.TagDTO(t.id, t.name, t.nameCN, t.tagUsage) FROM Tag t")
     List<TagDTO> findAllDTO();
 }

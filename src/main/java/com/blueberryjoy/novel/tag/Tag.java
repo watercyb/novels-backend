@@ -9,7 +9,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Entity
-@Table(name = "tags", indexes = {@Index(name = "idx_name", columnList = "tag_name")})
+@Table(
+        name = "tags",
+        indexes = {
+                @Index(name = "idx_name", columnList = "tag_name"),
+                @Index(name = "idx_nameCN", columnList = "tag_name_cn")
+        }
+)
 @Getter
 @Setter
 public class Tag {
@@ -20,6 +26,9 @@ public class Tag {
 
     @Column(name = "tag_name", unique = true, nullable = false)
     private String name;
+
+    @Column(name = "tag_name_cn", unique = true, nullable = false)
+    private String nameCN;
 
     @Column(name = "tag_usage", nullable = false)
     private int tagUsage;

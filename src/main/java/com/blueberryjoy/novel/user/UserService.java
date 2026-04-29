@@ -6,6 +6,7 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class UserService {
@@ -24,6 +25,7 @@ public class UserService {
         return userRepository.findById(id).orElse(null);
     }
 
+    @Transactional
     public User createUser(String name, String email, String password) {
         User existingUser = userRepository.findByEmail(email).orElse(null);
         if (existingUser != null)
@@ -38,17 +40,14 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void updatePassword(User user, String password) {
         user.setPasswordHash(passwordEncoder.encode(password));
         userRepository.save(user);
     }
 
+    @Transactional
     public void updateUser(User user) {
-        userRepository.save(user);
-    }
-
-    public void updateAvatar(User user, String avatarUrl) {
-        user.setAvatarUrl(avatarUrl);
         userRepository.save(user);
     }
 }
