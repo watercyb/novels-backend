@@ -211,4 +211,29 @@ public class NovelService {
         user.updateNovelCount(-1);
         userRepository.save(user);
     }
+
+    @Transactional
+    public NovelDTO updateNovel(long id, String title, String description, User user, MultipartFile coverImage) {
+        Novel novel = novelRepository.findById(id).orElse(null);
+        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
+            throw new ApiException("You do not have permission to update this novel.", HttpStatus.BAD_REQUEST);
+        if (title != null)
+            novel.setTitle(title);
+        if (description != null)
+            novel.setDescription(description);
+        if (coverImage != null && !coverImage.isEmpty()) {
+            String contentType = coverImage.getContentType();
+            if (contentType != null && contentType.startsWith("image/")) {
+                if (coverImage.getSize() > 5 * 1024 * 1024)
+                    throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                String fileName = repository.uploadNovelCover(coverImage, novel.getId());
+                if (fileName == null || fileName.isEmpty())
+                    throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
+                novel.setCoverUrl(fileName);
+            }
+        }
+        novel = novelRepository.save(novel);
+        return new NovelDTO(novel);
+    }
 }

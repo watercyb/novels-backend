@@ -68,16 +68,21 @@ public class NovelController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createNovel(@RequestParam(value = "coverImage", required = false) MultipartFile coverImage, @RequestParam(value = "title") String title, @RequestParam(value = "description", required = false) String description) {
+    public ResponseEntity<?> createOrUpdateNovel(@RequestParam(value = "coverImage", required = false) MultipartFile coverImage, @RequestParam(value = "id", required = false) Long id, @RequestParam(value = "title", required = false) String title, @RequestParam(value = "description", required = false) String description) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to create novel at this time.", HttpStatus.BAD_REQUEST);
-            if (title == null) throw new ApiException("Title cannot be empty.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (description == null) description = "";
-            NovelDTO novel = novelService.createNovel(title, description, user, coverImage);
-            return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null));
+            if (id != null) {
+                NovelDTO novel = novelService.updateNovel(id, title, description, user, coverImage);
+                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Updated successfully", novel, null));
+            } else {
+                if (title == null) throw new ApiException("Title cannot be empty.", HttpStatus.BAD_REQUEST);
+                if (description == null) description = "";
+                NovelDTO novel = novelService.createNovel(title, description, user, coverImage);
+                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null));
+            }
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
