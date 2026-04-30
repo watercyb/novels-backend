@@ -6,6 +6,8 @@ import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -43,13 +45,31 @@ public class FavoriteController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> removeFavorite(@PathVariable Long favoriteId) {
         try {
-            if (favoriteId == null) throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
+            if (favoriteId == null)
+                throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.removeFavorite(user, favoriteId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Removed from favorites successfully", null, null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getFavorites(Pageable pageable) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to get favorite list at the moment.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            Page<NovelDTO> novels = favoriteService.getNovels(user, pageable);
+            return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", null, new PageDTO<>(novels)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
