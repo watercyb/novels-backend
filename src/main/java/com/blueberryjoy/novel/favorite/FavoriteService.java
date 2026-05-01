@@ -4,7 +4,6 @@ import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.NovelRepository;
-import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
