@@ -1,3 +1,12 @@
+/*
+Post /signup: JSON -> {username, email, password}
+Post /login: JSON -> {email, password}
+Post /refresh: cookies
+Post /logout: (authenticated)
+Post /update: (authenticated) form-data -> avatarImage(file), username(String)
+Post /update: (authenticated) form-data -> {oldPassword, newPassword}
+*/
+
 package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.ApiException;

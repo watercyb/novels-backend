@@ -1,3 +1,12 @@
+/*
+Get /{novelId}: PathVariable -> novelId
+Get /: RequestParam -> userId(long), title(String), tagIds(List<Long>), pageable(Pageable)
+Post /: (authenticated) form-data -> avatarImage(file), id(long), username(String), title(String), description(String)
+Delete /{novelId}: (authenticated) PathVariable -> novelId
+Put /{novelId}/tags/{tagId}: (authenticated) PathVariable -> novelId, tagId
+Delete /{novelId}/tags/{tagId}: (authenticated) PathVariable -> novelId, tagId
+*/
+
 package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.exception.ApiException;

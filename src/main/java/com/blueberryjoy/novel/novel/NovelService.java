@@ -60,7 +60,7 @@ public class NovelService {
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                String fileName = repository.uploadNovelCover(coverImage, novel.getId());
+                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
                 if (fileName == null || fileName.isEmpty())
                     throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
@@ -203,7 +203,7 @@ public class NovelService {
                 .toList();
         tagRepository.decreaseCount(tagIds);
 
-        repository.deleteNovelCover(novel);
+        repository.deleteNovelCover(novel, user.getId());
         novel.getTags().clear();
         novelRepository.save(novel);
         chapterRepository.deleteByNovelId(novel.getId());
@@ -227,7 +227,7 @@ public class NovelService {
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                String fileName = repository.uploadNovelCover(coverImage, novel.getId());
+                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
                 if (fileName == null || fileName.isEmpty())
                     throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);

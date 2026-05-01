@@ -23,49 +23,32 @@ import java.io.ByteArrayOutputStream;
 
 @Service
 public class FileService {
+    @Value("${REPO_API_URL}")
+    private String repoApiUrl;
     @Value("${REPO_URL}")
     private String repoUrl;
     @Value("${REPO_TOKEN}")
     private String token;
     private final int avatarSize = 256;
 
-    public String uploadChapter(long novelId, String content) {
+    public String uploadChapter(Novel novel, long userId, String contentUrl, String content, boolean isRemove) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl + "chapter.php");
-                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
+                HttpPost post = new HttpPost(repoApiUrl + "chapter.php");
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
-                        .addTextBody("novel_id", String.valueOf(novelId))
+                        .addTextBody("user_id", String.valueOf(userId))
+                        .addTextBody("novel_id", String.valueOf(novel.getId()))
                         .addTextBody("content", content)
-                        .build();
+                        .addTextBody("remove", String.valueOf(isRemove));
 
-                post.setEntity(entity);
-
-                try (CloseableHttpResponse response = client.execute(post)) {
-                    String json = EntityUtils.toString(response.getEntity());
-                    ObjectMapper mapper = new ObjectMapper();
-                    UploadResponse res = mapper.readValue(json, UploadResponse.class);
-                    if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                    return res.filename;
-                } catch (ParseException e) {
-                    throw new ApiException("Cannot upload file", HttpStatus.INTERNAL_SERVER_ERROR);
+                if (contentUrl != null) {
+                    String[] strs = contentUrl.split("/");
+                    if (strs.length > 0)
+                        builder.addTextBody("filename", strs[strs.length - 1]);
                 }
-            }
-        } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
 
-    public String uploadChapter(long novelId, String filename, String content) {
-        try {
-            try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl + "chapter.php");
-                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
-                        .addTextBody("token", token)
-                        .addTextBody("novel_id", String.valueOf(novelId))
-                        .addTextBody("filename", filename)
-                        .addTextBody("content", content)
-                        .build();
+                org.apache.http.HttpEntity entity = builder.build();
 
                 post.setEntity(entity);
 
@@ -74,7 +57,7 @@ public class FileService {
                     ObjectMapper mapper = new ObjectMapper();
                     UploadResponse res = mapper.readValue(json, UploadResponse.class);
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                    return res.filename;
+                    return repoUrl + res.filename;
                 } catch (ParseException e) {
                     throw new ApiException("Cannot update file", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
@@ -89,7 +72,7 @@ public class FileService {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl + "avatar.php");
+                HttpPost post = new HttpPost(repoApiUrl + "avatar.php");
 
                 byte[] bytes = formatImage(file, true);
 
@@ -114,18 +97,21 @@ public class FileService {
         }
     }
 
-    public String uploadNovelCover(MultipartFile file, long novelId) {
+    public String uploadNovelCover(MultipartFile file, long userId, long novelId) {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl + "cover.php");
+                HttpPost post = new HttpPost(repoApiUrl + "cover.php");
 
                 byte[] bytes = formatImage(file, false);
 
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, "cover.jpg")
-                        .addTextBody("token", token).addTextBody("novel_id", String.valueOf(novelId)).build();
+                        .addTextBody("token", token)
+                        .addTextBody("user_id", String.valueOf(userId))
+                        .addTextBody("novel_id", String.valueOf(novelId))
+                        .build();
 
                 post.setEntity(entity);
 
@@ -144,16 +130,17 @@ public class FileService {
         }
     }
 
-    public void deleteNovelCover(Novel novel) {
+    public void deleteNovelCover(Novel novel, long userId) {
         try {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
-                HttpPost post = new HttpPost(repoUrl + "cover.php");
+                HttpPost post = new HttpPost(repoApiUrl + "cover.php");
 
                 String url = novel.getCoverUrl();
                 if (url == null) return;
 
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
+                        .addTextBody("user_id", String.valueOf(userId))
                         .addTextBody("novel_id", String.valueOf(novel.getId()))
                         .build();
 
@@ -183,8 +170,16 @@ public class FileService {
             if (resize)
                 image = resize(image, avatarSize, avatarSize);
 
+            BufferedImage rgbImage = new BufferedImage(
+                    original.getWidth(),
+                    original.getHeight(),
+                    BufferedImage.TYPE_INT_RGB
+            );
+
+            rgbImage.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
+
             ByteArrayOutputStream arr = new ByteArrayOutputStream();
-            ImageIO.write(image, "jpg", arr);
+            boolean success = ImageIO.write(rgbImage, "jpeg", arr);
             return arr.toByteArray();
         } catch (Exception e) {
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);

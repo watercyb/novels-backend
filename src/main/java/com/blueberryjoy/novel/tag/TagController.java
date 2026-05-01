@@ -1,3 +1,8 @@
+/*
+Post /: (Authority('ADMIN')) JSON -> {id, name, nameCN, count}
+Get /:
+*/
+
 package com.blueberryjoy.novel.tag;
 
 import com.blueberryjoy.novel.exception.ApiException;

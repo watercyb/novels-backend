@@ -1,3 +1,9 @@
+/*
+Put /{novelId}: (authenticated) PathVariable -> novelId
+Delete /{favoriteId}: (authenticated) PathVariable -> favoriteId
+Get /: RequestParam -> pageable(Pageable)
+*/
+
 package com.blueberryjoy.novel.favorite;
 
 import com.blueberryjoy.novel.exception.ApiException;
