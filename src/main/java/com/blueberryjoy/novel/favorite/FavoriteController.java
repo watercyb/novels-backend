@@ -1,7 +1,7 @@
 /*
-Put /{novelId}: (authenticated) PathVariable -> novelId
-Delete /{favoriteId}: (authenticated) PathVariable -> favoriteId
-Get /: RequestParam -> pageable(Pageable)
+Put /{novelId} (authenticated) PathVariable: novelId
+Delete /{favoriteId} (authenticated) PathVariable: favoriteId
+Get /: (authenticated) RequestParam: pageable(Pageable)
 */
 
 package com.blueberryjoy.novel.favorite;
@@ -36,7 +36,7 @@ public class FavoriteController {
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to add to favorites at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.addFavorite(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Favorite successfully", null, null));

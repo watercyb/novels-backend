@@ -1,6 +1,5 @@
 package com.blueberryjoy.novel.like;
 
-import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.user.User;
 import jakarta.persistence.*;
@@ -13,7 +12,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "likes",
         indexes = {
-                @Index(name = "idx_user", columnList = "user_id")
+                @Index(name = "idx_user", columnList = "user_id"),
+                @Index(name = "idx_user_novel", columnList = "user_id, novel_id")
         }
 )
 @Data

@@ -31,15 +31,15 @@ public class Comment {
     @JoinColumn(name = "chapter_id")
     private Chapter chapter;
 
-    @Column(columnDefinition = "TEXT")
-    private String content;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Comment parent;
 
+    @Column(columnDefinition = "TEXT")
+    private String content;
+
     @Column(name = "comment_count")
-    private Long commentCount;
+    private int commentCount;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

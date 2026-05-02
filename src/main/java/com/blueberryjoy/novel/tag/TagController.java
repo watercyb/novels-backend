@@ -1,6 +1,6 @@
 /*
-Post /: (Authority('ADMIN')) JSON -> {id, name, nameCN, count}
-Get /:
+Post / (Authority('ADMIN')) JSON: {id, name, nameCN, count}
+Get /
 */
 
 package com.blueberryjoy.novel.tag;
@@ -25,7 +25,7 @@ public class TagController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<?> createTag(@RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> createOrUpdateTag(@RequestBody Map<String, Object> body) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null || auth.getPrincipal() == null)

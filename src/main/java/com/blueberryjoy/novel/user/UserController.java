@@ -1,10 +1,10 @@
 /*
-Post /signup: JSON -> {username, email, password}
-Post /login: JSON -> {email, password}
-Post /refresh: cookies
-Post /logout: (authenticated)
-Post /update: (authenticated) form-data -> avatarImage(file), username(String)
-Post /update: (authenticated) form-data -> {oldPassword, newPassword}
+Post /signup JSON: {username, email, password} -> UserDTO
+Post /login JSON: {email, password} -> UserDTO
+Post /refresh
+Post /logout (authenticated)
+Post /update (authenticated) form-data: avatarImage(file), username(String) -> UserDTO
+Post /update_password (authenticated) form-data: {oldPassword, newPassword} -> UserDTO
 */
 
 package com.blueberryjoy.novel.user;

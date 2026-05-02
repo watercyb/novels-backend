@@ -89,4 +89,8 @@ public class Novel {
         this.tags.remove(tag);
         tag.getNovels().remove(this);
     }
+
+    public void updateLikeCount(int n) {
+        likeCount += n;
+    }
 }
