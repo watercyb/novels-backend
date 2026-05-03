@@ -10,16 +10,13 @@ import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -81,16 +78,6 @@ public class NovelService {
     }
 
     @Transactional
-    public List<NovelDTO> getNovels(long UserId) {
-        List<Novel> list = novelRepository.findNovels(UserId);
-        List<NovelDTO> novelDTOs = new ArrayList<>();
-        for (Novel novel : list) {
-            novelDTOs.add(new NovelDTO(novel));
-        }
-        return novelDTOs;
-    }
-
-    @Transactional
     public void addTag(User user, long novelId, long tagId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
@@ -121,26 +108,8 @@ public class NovelService {
     }
 
     @Transactional
-    public boolean deleteNovel(long novelId) {
-        Novel novel = novelRepository.findById(novelId).orElse(null);
-        if (novel == null) return false;
-
-        List<Long> tagIds = novel.getTags()
-                .stream()
-                .map(Tag::getId)
-                .toList();
-        tagRepository.decreaseCount(tagIds);
-
-        novel.getTags().clear();
-        novelRepository.save(novel);
-        chapterRepository.deleteByNovelId(novel.getId());
-        novelRepository.delete(novel);
-        return true;
-    }
-
-    @Transactional
     public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable) {
-        Page<Novel> novels = null;
+        Page<Novel> novels;
         if (pageable.getSort().isSorted()) {
             novels = novelRepository.searchByKeywordAndTagSort(keyword, tags, pageable);
         } else {
@@ -151,7 +120,7 @@ public class NovelService {
 
     @Transactional
     public Page<NovelDTO> searchByKeyword(String keyword, Pageable pageable) {
-        Page<Novel> novels = null;
+        Page<Novel> novels;
         if (pageable.getSort().isSorted()) {
             novels = novelRepository.searchByKeywordSort(keyword, pageable);
         } else {
@@ -163,13 +132,6 @@ public class NovelService {
     @Transactional
     public Page<NovelDTO> searchByTags(List<Long> tags, Pageable pageable) {
         Page<Novel> novels = novelRepository.searchByTags(tags, pageable);
-        return novels.map(NovelDTO::new);
-    }
-
-    @Transactional
-    public Page<NovelDTO> searchByUserId(long userId, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Novel> novels = novelRepository.searchByUseId(userId, pageable);
         return novels.map(NovelDTO::new);
     }
 
@@ -186,11 +148,6 @@ public class NovelService {
     }
 
     @Transactional
-    public Novel save(Novel novel) {
-        return novelRepository.save(novel);
-    }
-
-    @Transactional
     public void deleteById(User user, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
@@ -203,12 +160,14 @@ public class NovelService {
                 .toList();
         tagRepository.decreaseCount(tagIds);
 
+        int chapterCount = novel.getChapterCount();
         repository.deleteNovelCover(novel, user.getId());
         novel.getTags().clear();
         novelRepository.save(novel);
         chapterRepository.deleteByNovelId(novel.getId());
         novelRepository.delete(novel);
         user.updateNovelCount(-1);
+        user.updateChapterCount(-chapterCount);
         userRepository.save(user);
     }
 

@@ -48,6 +48,14 @@ public class User {
         novelCount += n;
     }
 
+    public void updateChapterCount(int n) {
+        chapterCount += n;
+    }
+
+    public void updateWordCount(int n) {
+        wordCount += n;
+    }
+
     public enum Role {
         USER, ADMIN, SUPERADMIN
     }

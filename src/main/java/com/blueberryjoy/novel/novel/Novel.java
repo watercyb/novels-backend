@@ -93,4 +93,12 @@ public class Novel {
     public void updateLikeCount(int n) {
         likeCount += n;
     }
+
+    public void updateChapterCount(int n) {
+        chapterCount += n;
+    }
+
+    public void updateWordCount(int n) {
+        wordCount += n;
+    }
 }

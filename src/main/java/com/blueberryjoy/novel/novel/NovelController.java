@@ -156,7 +156,7 @@ public class NovelController {
         }
     }
 
-    public static Pageable filterPageable(Pageable pageable) {
+    private static Pageable filterPageable(Pageable pageable) {
         Sort sort = Sort.by(
                 pageable.getSort().stream()
                         .filter(o -> allowedFields.contains(o.getProperty()))

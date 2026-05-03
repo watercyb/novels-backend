@@ -1,12 +1,13 @@
 package com.blueberryjoy.novel.chpater;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
-import java.util.List;
 
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
@@ -17,31 +18,10 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
             WHERE c.novel.id = :novelId
             ORDER BY c.orderIndex ASC
             """)
-    List<ChapterDTO> findChapterPreview(@Param("novelId") Long novelId);
+    Page<ChapterDTO> findChapterPreview(@Param("novelId") Long novelId, Pageable pageable);
 
     @Query("SELECT MAX(c.orderIndex) FROM Chapter c WHERE c.novel.id = :novelId")
     BigDecimal findLastOrderIndex(@Param("novelId") Long novelId);
-
-    @Modifying
-    @Query("UPDATE Chapter c SET c.orderIndex = :newIndex WHERE c.id = :id")
-    int updateOrderIndex(@Param("id") Long id,
-                         @Param("newIndex") BigDecimal newIndex);
-
-    @Query("SELECT c.novel.id, c.orderIndex FROM Chapter c WHERE c.id = :id")
-    Object[] findNovelIdAndOrderIndexById(Long id);
-
-    @Query("""
-            SELECT COUNT(c) > 0
-            FROM Chapter c
-            WHERE c.novel.id = :novelId
-            AND c.orderIndex > :aIndex
-            AND c.orderIndex < :bIndex
-            """)
-    boolean existsBetween(
-            @Param("novelId") Long novelId,
-            @Param("aIndex") BigDecimal aIndex,
-            @Param("bIndex") BigDecimal bIndex
-    );
 
     @Modifying
     @Query("""
@@ -58,4 +38,17 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Modifying
     @Query("DELETE FROM Chapter c WHERE c.novel.id = :novelId")
     void deleteByNovelId(Long novelId);
+
+    @Query(value = """
+                SELECT *
+                FROM chapters c
+                WHERE c.novel_id = :novelId
+                  AND c.order_index > :orderIndex
+                ORDER BY c.order_index ASC
+                LIMIT 1
+            """, nativeQuery = true)
+    Chapter findNextChapter(
+            @Param("novelId") Long novelId,
+            @Param("orderIndex") BigDecimal orderIndex
+    );
 }
