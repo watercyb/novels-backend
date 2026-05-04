@@ -1,4 +1,5 @@
 package com.blueberryjoy.novel.chpater;
+
 import com.blueberryjoy.novel.novel.Novel;
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,7 +32,7 @@ public class Chapter {
     @Column(columnDefinition = "MEDIUMTEXT")
     private String content;
 
-    @Column(precision = 10, scale = 4)
+    @Column(name = "order_index", precision = 10, scale = 4)
     private BigDecimal orderIndex;
 
     @Column(name = "view_count", nullable = false)

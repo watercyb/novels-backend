@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 @Getter
 public class ChapterDTO {
     private final Long id;
+    private final Long novelId;
     private final String title;
+    private final String content;
     private final String content_url;
     private final BigDecimal orderIndex;
     private final int viewCount;
@@ -18,7 +20,9 @@ public class ChapterDTO {
 
     public ChapterDTO(Chapter chapter) {
         this.id = chapter.getId();
+        this.novelId = chapter.getNovel().getId();
         this.title = chapter.getTitle();
+        this.content = chapter.getContent();
         this.content_url = chapter.getContentUrl();
         this.orderIndex = chapter.getOrderIndex();
         this.viewCount = chapter.getViewCount();
@@ -27,14 +31,16 @@ public class ChapterDTO {
         this.updatedAt = chapter.getUpdatedAt();
     }
 
-    public ChapterDTO(long id, String title, String contentUrl, BigDecimal orderIndex, int viewCount, int wordCount, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ChapterDTO(long id, long novelId, String title, BigDecimal orderIndex) {
         this.id = id;
+        this.novelId = novelId;
         this.title = title;
-        this.content_url = contentUrl;
+        this.content = null;
+        this.content_url = null;
         this.orderIndex = orderIndex;
-        this.viewCount = viewCount;
-        this.wordCount = wordCount;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.viewCount = -1;
+        this.wordCount = -1;
+        this.createdAt = null;
+        this.updatedAt = null;
     }
 }

@@ -8,11 +8,12 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(
-                c.id, c.title, c.contentUrl, c.orderIndex, c.viewCount, c.wordCount, c.createdAt, c.updatedAt
+                c.id, c.novel.id, c.title, c.orderIndex
             )
             FROM Chapter c
             WHERE c.novel.id = :novelId
@@ -42,13 +43,39 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query(value = """
                 SELECT *
                 FROM chapters c
-                WHERE c.novel_id = :novelId
-                  AND c.order_index > :orderIndex
-                ORDER BY c.order_index ASC
+                WHERE c.novel.id = :novelId
+                  AND c.orderIndex > :orderIndex
+                ORDER BY c.orderIndex ASC
                 LIMIT 1
             """, nativeQuery = true)
     Chapter findNextChapter(
             @Param("novelId") Long novelId,
             @Param("orderIndex") BigDecimal orderIndex
+    );
+
+    @Query("""
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex)
+                FROM Chapter c
+                WHERE c.novel.id = :novelId
+                  AND c.orderIndex < :orderIndex
+                ORDER BY c.orderIndex DESC
+            """)
+    List<ChapterDTO> findPrevChapterDTO(
+            @Param("novelId") Long novelId,
+            @Param("orderIndex") BigDecimal orderIndex,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex)
+                FROM Chapter c
+                WHERE c.novel.id = :novelId
+                  AND c.orderIndex > :orderIndex
+                ORDER BY c.orderIndex ASC
+            """)
+    List<ChapterDTO> findNextChapterDTO(
+            @Param("novelId") Long novelId,
+            @Param("orderIndex") BigDecimal orderIndex,
+            Pageable pageable
     );
 }

@@ -8,6 +8,7 @@ import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,8 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.text.BreakIterator;
-import java.util.Locale;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class ChapterService {
@@ -32,11 +32,21 @@ public class ChapterService {
     @Autowired
     private UserRepository userRepository;
 
-    public ChapterDTO getChapter(Long id) {
+    public List<ChapterDTO> getChapter(Long id) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
         if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        return new ChapterDTO(chapter);
+        ChapterDTO prv = chapterRepository
+                .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
+                .orElse(null);
+        ChapterDTO next = chapterRepository
+                .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
+                .orElse(null);
+        return Arrays.asList(new ChapterDTO(chapter), prv, next);
     }
 
     @Transactional
@@ -64,7 +74,7 @@ public class ChapterService {
         user.updateChapterCount(1);
         user.updateWordCount(wordCount);
         userRepository.save(user);
-        return new ChapterDTO(chapter);
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex());
     }
 
 
@@ -96,7 +106,7 @@ public class ChapterService {
         novelRepository.save(novel);
         user.updateWordCount(wordCountNew - wordCountOld);
         userRepository.save(user);
-        return new ChapterDTO(chapter);
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex());
     }
 
     public Page<ChapterDTO> getChapters(long novelId, Pageable pageable) {
@@ -117,22 +127,26 @@ public class ChapterService {
         Chapter target = chapterRepository.findById(targetId).orElse(null);
         if (chapter == null || target == null || target.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        Chapter next = chapterRepository.findNextChapter(chapter.getNovel().getId(), chapter.getOrderIndex());
+        ChapterDTO next = chapterRepository
+                .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                .stream()
+                .findFirst()
+                .orElse(null);
         Novel novelChapter = chapter.getNovel();
         Novel novelTarget = target.getNovel();
         if (!novelChapter.getAuthor().getId().equals(user.getId()) || !novelTarget.getAuthor().getId().equals(user.getId()))
             throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
         if (next == null) {
-            if (chapter.getOrderIndex().compareTo(target.getOrderIndex()) == 0) return new ChapterDTO(target);
+            if (chapter.getOrderIndex().compareTo(target.getOrderIndex()) == 0)
+                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
             BigDecimal newIndex = chapter.getOrderIndex().setScale(0, RoundingMode.CEILING).add(BigDecimal.ONE);
             target.setOrderIndex(newIndex);
             chapterRepository.save(target);
         } else {
-            Novel nextNovel = next.getNovel();
-            if (!nextNovel.getAuthor().getId().equals(user.getId()))
+            if (!Objects.requireNonNull(novelRepository.findById(next.getNovelId()).orElse(null)).getAuthor().getId().equals(user.getId()))
                 throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
             if (next.getId() == targetId)
-                return new ChapterDTO(target);
+                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
             BigDecimal orderIndexChapter = chapter.getOrderIndex();
             BigDecimal orderIndexNext = next.getOrderIndex();
             BigDecimal newIndex = orderIndexChapter
@@ -145,7 +159,7 @@ public class ChapterService {
             target.setOrderIndex(newIndex);
             chapterRepository.save(target);
         }
-        return new ChapterDTO(target);
+        return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
     }
 
     @Transactional

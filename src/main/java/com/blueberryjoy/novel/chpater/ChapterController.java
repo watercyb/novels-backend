@@ -1,9 +1,9 @@
 /*
-Get /{chapterId} PathVariable: chapterId -> ChapterDTO
+Get /{chapterId} PathVariable: chapterId -> List<ChapterDTO> (chapter, prv, next)
 Get / RequestParam: novelId(long),  pageable(Pageable) -> PageDTO<ChapterDTO>
-Post / (authenticated) JSON: {novelId, chapterId, title, content} -> ChapterDTO
+Post / (authenticated) JSON: {novelId, chapterId, title, content} -> List<ChapterDTO>
 Delete /{novelId} (authenticated) PathVariable: novelId
-Post /move (authenticated) JSON: {chapterId, targetId} -> ChapterDTO
+Post /move (authenticated) JSON: {chapterId, targetId} -> List<ChapterDTO>
 */
 
 
@@ -23,6 +23,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -35,11 +36,12 @@ public class ChapterController {
     public ResponseEntity<?> getChapterById(@PathVariable Long chapterId) {
         try {
             if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-            ChapterDTO chapter = chapterService.getChapter(chapterId);
-            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", chapter, null));
+            List<ChapterDTO> list = chapterService.getChapter(chapterId);
+            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", list, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -66,18 +68,18 @@ public class ChapterController {
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            Integer novelId = (Integer) body.get("novelId");
-            Integer chapterId = (Integer) body.get("chapterId");
+            Number novelId = (Number) body.get("novelId");
+            Number chapterId = (Number) body.get("chapterId");
             String title = (String) body.get("title");
             String content = (String) body.get("content");
             if (novelId == null || title == null || content == null)
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
             if (chapterId == null) {
-                ChapterDTO chapter = chapterService.createChapter(user, novelId, title, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter created successfully", chapter, null));
+                ChapterDTO chapter = chapterService.createChapter(user, novelId.longValue(), title, content);
+                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter created successfully", List.of(chapter), null));
             } else {
-                ChapterDTO chapter = chapterService.updateChapter(user, novelId, chapterId, title, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter updated successfully", chapter, null));
+                ChapterDTO chapter = chapterService.updateChapter(user, novelId.longValue(), chapterId.longValue(), title, content);
+                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter updated successfully", List.of(chapter), null));
             }
         } catch (ApiException e) {
             throw e;
@@ -112,12 +114,12 @@ public class ChapterController {
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            Integer chapterId = (Integer) body.get("chapterId");
-            Integer targetId = (Integer) body.get("targetId");
+            Number chapterId = (Number) body.get("chapterId");
+            Number targetId = (Number) body.get("targetId");
             if (chapterId == null || targetId == null)
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
-            ChapterDTO chapter = chapterService.move(user, chapterId, targetId);
-            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", chapter, null));
+            ChapterDTO chapter = chapterService.move(user, chapterId.longValue(), targetId.longValue());
+            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", List.of(chapter), null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -125,6 +127,6 @@ public class ChapterController {
         }
     }
 
-    record ChapterResponse(boolean success, String message, ChapterDTO chapter, PageDTO<ChapterDTO> page) {
+    record ChapterResponse(boolean success, String message, List<ChapterDTO> chapter, PageDTO<ChapterDTO> page) {
     }
 }
