@@ -30,7 +30,7 @@ public class TagController {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to create tag at this time.", HttpStatus.BAD_REQUEST);
-            Integer id =  (Integer) body.get("id");
+            Number id =  (Number) body.get("id");
             String name = (String) body.get("name");
             String nameCN = (String) body.get("nameCN");
             Integer count = (Integer) body.get("count");
@@ -40,7 +40,7 @@ public class TagController {
                 TagDTO tag = tagService.createTag(name, nameCN);
                 return ResponseEntity.ok().body(new TagResponse(true, "Created successfully", tag, null));
             } else {
-                TagDTO tag = tagService.update(id, name, nameCN, count);
+                TagDTO tag = tagService.update(id.longValue(), name, nameCN, count);
                 return ResponseEntity.ok().body(new TagResponse(true, "Updated successfully", tag, null));
             }
         } catch (ApiException e) {
