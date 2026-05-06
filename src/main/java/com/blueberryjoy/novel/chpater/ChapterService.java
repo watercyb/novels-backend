@@ -1,5 +1,6 @@
 package com.blueberryjoy.novel.chpater;
 
+import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.file.FileService;
 import com.blueberryjoy.novel.novel.Novel;
@@ -31,6 +32,8 @@ public class ChapterService {
     private FileService fileService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     public List<ChapterDTO> getChapter(Long id) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
@@ -173,6 +176,8 @@ public class ChapterService {
         if (chapter.getContent() == null || chapter.getContent().isEmpty())
             fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "", true);
         int wordCount = chapter.getWordCount();
+        commentRepository.deleteRepliesByChapter(chapterId);
+        commentRepository.deleteCommentsByChapter(chapterId);
         chapterRepository.delete(chapter);
         novel.updateWordCount(-wordCount);
         novel.setLastUpdatedAt(chapter.getUpdatedAt());

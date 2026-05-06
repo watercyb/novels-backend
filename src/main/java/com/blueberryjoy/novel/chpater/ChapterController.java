@@ -66,7 +66,7 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to update chapter at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number novelId = (Number) body.get("novelId");
             Number chapterId = (Number) body.get("chapterId");
@@ -90,18 +90,19 @@ public class ChapterController {
 
     @DeleteMapping("/{chapterId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> removeChapterById(@PathVariable Long chapterId) {
+    public ResponseEntity<?> deleteChapterById(@PathVariable Long chapterId) {
         try {
             if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to delete chapter at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             chapterService.deleteChapter(user, chapterId);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter deleted successfully", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -112,7 +113,7 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to move chapter at this time.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number chapterId = (Number) body.get("chapterId");
             Number targetId = (Number) body.get("targetId");

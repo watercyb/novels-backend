@@ -78,4 +78,11 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
             @Param("orderIndex") BigDecimal orderIndex,
             Pageable pageable
     );
+
+    @Modifying
+    @Query("""
+                DELETE FROM Chapter ch
+                WHERE ch.novel.id = :novelId
+            """)
+    void deleteChaptersByNovel(@Param("novelId") Long novelId);
 }
