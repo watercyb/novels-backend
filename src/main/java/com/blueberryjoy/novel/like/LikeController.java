@@ -40,7 +40,7 @@ public class LikeController {
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to like the novel at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to like the novel right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             likeService.like(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "Liked successfully", null));
@@ -56,10 +56,10 @@ public class LikeController {
     public ResponseEntity<?> unlike(@PathVariable Long novelId) {
         try {
             if (novelId == null)
-                throw new ApiException("Unable to unlike at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to unlike at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to unlike right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             likeService.unlike(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "Unliked successfully", null));
@@ -76,7 +76,7 @@ public class LikeController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get favorite list at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to load likes right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             List<Long> list = likeService.getIds(user);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "", list));

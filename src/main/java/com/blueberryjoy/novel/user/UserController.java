@@ -134,7 +134,7 @@ public class UserController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update user info at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to update user info right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
 
             if (avatarImage != null && !avatarImage.isEmpty()) {
@@ -144,7 +144,7 @@ public class UserController {
                         throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
                     String fileName = repository.uploadAvatar(avatarImage, user.getId());
                     if (fileName == null || fileName.isEmpty())
-                        throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
+                        throw new ApiException("Unable to update user avatar right now.", HttpStatus.BAD_REQUEST);
                     user.setAvatarUrl(fileName);
                 }
             }
@@ -164,20 +164,19 @@ public class UserController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update password at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to update password right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             String oldPassword = (String) body.get("oldPassword");
             String newPassword = (String) body.get("newPassword");
-            if (!passwordEncoder.matches(oldPassword, user.getPasswordHash()))
-                throw new ApiException("Unable to update password at this time.", HttpStatus.BAD_REQUEST);
             if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty())
-                throw new ApiException("Password cannot be empty.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+            if (!passwordEncoder.matches(oldPassword, user.getPasswordHash()))
+                throw new ApiException("Unable to update password right now.", HttpStatus.BAD_REQUEST);
             if (newPassword.equals(oldPassword))
                 throw new ApiException("New password must be different from your current password.", HttpStatus.BAD_REQUEST);
             userService.updatePassword(user, newPassword);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
         } catch (ApiException e) {
             throw e;

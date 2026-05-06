@@ -125,7 +125,7 @@ public class ChapterService {
     @Transactional
     public ChapterDTO move(User user, long chapterId, long targetId) {
         if (chapterId == targetId)
-            throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         Chapter target = chapterRepository.findById(targetId).orElse(null);
         if (chapter == null || target == null || target.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)

@@ -37,7 +37,7 @@ public class LikeService {
     public void unlike(User user, long novelId) {
         Like like = likeRepository.findByUserIdAndNovelId(user.getId(), novelId);
         if (like == null || !Objects.equals(like.getUser().getId(), user.getId()))
-            throw new ApiException("Unable to unlike at the moment.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("Unable to unlike right now.", HttpStatus.BAD_REQUEST);
         Novel novel = like.getNovel();
         likeRepository.delete(like);
         novel.updateLikeCount(-1);

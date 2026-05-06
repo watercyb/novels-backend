@@ -36,7 +36,7 @@ public class FavoriteController {
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add to favorites at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to add to favorites right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.addFavorite(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Favorite successfully", null, null));
@@ -52,10 +52,10 @@ public class FavoriteController {
     public ResponseEntity<?> deleteFavorite(@PathVariable Long favoriteId) {
         try {
             if (favoriteId == null)
-                throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to remove from favorites right now.", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to remove from favorites right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.deleteFavorite(user, favoriteId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Removed from favorites successfully", null, null));
@@ -72,7 +72,7 @@ public class FavoriteController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get favorite list at the moment.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to get list of favorites right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Page<NovelDTO> novels = favoriteService.getNovels(user, pageable);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", null, new PageDTO<>(novels)));

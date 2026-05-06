@@ -34,7 +34,7 @@ public class CommentController {
     public ResponseEntity<?> getComments(@RequestParam(required = false) Long chapterId, @RequestParam(required = false) Long commentId, @RequestParam() Pageable pageable) {
         try {
             if (chapterId == null && commentId == null)
-                throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             Page<CommentDTO> comments;
             if (commentId == null) {
@@ -56,14 +56,16 @@ public class CommentController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to create/update comment at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to create or update comment right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number chapterId = (Number) body.get("chapterId");
             Number parentId = (Number) body.get("parentId");
             Number commentId = (Number) body.get("commentId");
             String content = (String) body.get("content");
-            if ((chapterId == null && parentId == null && commentId == null) || content == null)
+            if (content == null)
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+            if ((chapterId == null && parentId == null && commentId == null))
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             if (commentId == null) {
                 CommentDTO comment = commentService.createComment(user, chapterId, parentId, content);
                 return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment created successfully", comment, null));
@@ -85,7 +87,7 @@ public class CommentController {
             if (commentId == null) throw new ApiException("Comment not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete comment at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to delete comment right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             commentService.deleteComment(user, commentId);
             return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment deleted successfully", null, null));

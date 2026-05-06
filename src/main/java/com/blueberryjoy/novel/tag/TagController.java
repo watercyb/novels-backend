@@ -29,7 +29,7 @@ public class TagController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to create tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to create tag right now.", HttpStatus.BAD_REQUEST);
             Number id =  (Number) body.get("id");
             String name = (String) body.get("name");
             String nameCN = (String) body.get("nameCN");

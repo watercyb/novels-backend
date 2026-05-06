@@ -81,7 +81,7 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to create novel at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to create novel right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (id != null) {
                 NovelDTO novel = novelService.updateNovel(id, title, description, user, coverImage);
@@ -105,7 +105,7 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete novel at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to delete novel right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
             novelService.deleteById(user, novelId);
@@ -124,9 +124,9 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to add tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+            if (novelId == null || tagId == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             novelService.addTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null, null));
         } catch (ApiException e) {
@@ -143,9 +143,9 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add tag at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to remove tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (novelId == null || tagId == null) throw new ApiException("Invalid input", HttpStatus.BAD_REQUEST);
+            if (novelId == null || tagId == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             novelService.removeTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null, null));
         } catch (ApiException e) {

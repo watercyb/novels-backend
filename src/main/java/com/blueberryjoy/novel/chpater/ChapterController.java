@@ -66,7 +66,7 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update chapter at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to update chapter right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number novelId = (Number) body.get("novelId");
             Number chapterId = (Number) body.get("chapterId");
@@ -95,7 +95,7 @@ public class ChapterController {
             if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete chapter at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to delete chapter right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             chapterService.deleteChapter(user, chapterId);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter deleted successfully", null, null));
@@ -113,12 +113,12 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to move chapter at this time.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("Unable to move chapter right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number chapterId = (Number) body.get("chapterId");
             Number targetId = (Number) body.get("targetId");
             if (chapterId == null || targetId == null)
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             ChapterDTO chapter = chapterService.move(user, chapterId.longValue(), targetId.longValue());
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", List.of(chapter), null));
         } catch (ApiException e) {

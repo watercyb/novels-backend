@@ -62,7 +62,7 @@ public class NovelService {
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
                 String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
                 if (fileName == null || fileName.isEmpty())
-                    throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
             }
         }
@@ -85,7 +85,7 @@ public class NovelService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
         if (novel == null || tag == null)
-            throw new ApiException("Invalid input.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
         if (!novel.getTags().contains(tag)) {
@@ -100,7 +100,7 @@ public class NovelService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
         if (novel == null || tag == null)
-            throw new ApiException("Invalid input.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
         if (novel.getTags().contains(tag)) {
@@ -196,7 +196,7 @@ public class NovelService {
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
                 String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
                 if (fileName == null || fileName.isEmpty())
-                    throw new ApiException("Unable to update user avatar at this time.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
             }
         }
