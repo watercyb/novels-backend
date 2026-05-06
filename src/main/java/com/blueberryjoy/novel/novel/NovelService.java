@@ -2,6 +2,7 @@ package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
+import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.file.FileService;
 import com.blueberryjoy.novel.tag.Tag;
@@ -34,6 +35,8 @@ public class NovelService {
     private UserRepository userRepository;
     @Autowired
     private FileService repository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     @Transactional
     public NovelDTO getNovel(Long id) {
@@ -161,6 +164,10 @@ public class NovelService {
         tagRepository.decreaseCount(tagIds);
 
         int chapterCount = novel.getChapterCount();
+        int wordCount = novel.getWordCount();
+        commentRepository.deleteRepliesByNovel(novel.getId());
+        commentRepository.deleteCommentsByNovel(novel.getId());
+        chapterRepository.deleteChaptersByNovel(novel.getId());
         repository.deleteNovelCover(novel, user.getId());
         novel.getTags().clear();
         novelRepository.save(novel);
@@ -168,6 +175,7 @@ public class NovelService {
         novelRepository.delete(novel);
         user.updateNovelCount(-1);
         user.updateChapterCount(-chapterCount);
+        user.updateWordCount(-wordCount);
         userRepository.save(user);
     }
 
