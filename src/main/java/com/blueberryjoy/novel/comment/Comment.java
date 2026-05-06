@@ -12,7 +12,8 @@ import java.time.LocalDateTime;
 @Table(
         name = "comments",
         indexes = {
-                @Index(name = "idx_chapter_parent_create", columnList = "chapter_id, parent_id, created_at DESC")
+                @Index(name = "idx_chapter_create", columnList = "chapter_id, created_at DESC"),
+                @Index(name = "idx_parent_create", columnList = "parent_id, created_at DESC")
         }
 )
 @Data
@@ -44,4 +45,8 @@ public class Comment {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public void updateCommentCount(int n) {
+        this.commentCount += n;
+    }
 }
