@@ -35,7 +35,7 @@ public class FavoriteService {
     }
 
     @Transactional
-    public void removeFavorite(User user, long favoriteId) {
+    public void deleteFavorite(User user, long favoriteId) {
         Favorite favorite = favoriteRepository.findById(favoriteId).orElse(null);
         if (favorite == null || !Objects.equals(favorite.getUser().getId(), user.getId()))
             throw new ApiException("Unable to remove from favorites at the moment.", HttpStatus.BAD_REQUEST);
