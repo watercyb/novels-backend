@@ -41,6 +41,7 @@ dependencies {
     implementation "org.apache.httpcomponents:httpclient:4.5.14"
     implementation "org.apache.httpcomponents:httpmime:4.5.14"
     implementation 'org.springframework:spring-test'
+    implementation 'com.squareup.okhttp3:okhttp:5.3.2'
 }
 
 tasks.named('test') {
