@@ -35,21 +35,27 @@ public class ChapterService {
     @Autowired
     private CommentRepository commentRepository;
 
-    public List<ChapterDTO> getChapter(Long id) {
+    public List<ChapterDTO> getChapter(Long id, boolean adjacent) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
         if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        ChapterDTO prv = chapterRepository
-                .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                .stream()
-                .findFirst()
-                .orElse(null);
-        ChapterDTO next = chapterRepository
-                .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                .stream()
-                .findFirst()
-                .orElse(null);
-        return Arrays.asList(new ChapterDTO(chapter), prv, next);
+        List<ChapterDTO> res = new ArrayList<>();
+        res.add(new ChapterDTO(chapter));
+        if (adjacent) {
+            ChapterDTO prv = chapterRepository
+                    .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            ChapterDTO next = chapterRepository
+                    .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                    .stream()
+                    .findFirst()
+                    .orElse(null);
+            res.add(prv);
+            res.add(next);
+        }
+        return res;
     }
 
     @Transactional

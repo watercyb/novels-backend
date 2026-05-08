@@ -33,10 +33,10 @@ public class ChapterController {
     private ChapterService chapterService;
 
     @GetMapping("/{chapterId}")
-    public ResponseEntity<?> getChapterById(@PathVariable Long chapterId) {
+    public ResponseEntity<?> getChapterById(@PathVariable Long chapterId, @RequestParam(defaultValue = "true") boolean adjacent) {
         try {
             if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-            List<ChapterDTO> list = chapterService.getChapter(chapterId);
+            List<ChapterDTO> list = chapterService.getChapter(chapterId, adjacent);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", list, null));
         } catch (ApiException e) {
             throw e;
