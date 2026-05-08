@@ -26,7 +26,7 @@ public class UserService {
     }
 
     @Transactional
-    public User createUser(String name, String email, String password) {
+    public User createUser(String name, String email, String password, String role) {
         User existingUser = userRepository.findByEmail(email).orElse(null);
         if (existingUser != null)
             throw new ApiException("User with email " + email + " already exists", HttpStatus.BAD_REQUEST);
@@ -37,6 +37,7 @@ public class UserService {
         user.setChapterCount(0);
         user.setWordCount(0);
         user.setPasswordHash(passwordEncoder.encode(password));
+        user.setRole(User.Role.valueOf(role));
         return userRepository.save(user);
     }
 

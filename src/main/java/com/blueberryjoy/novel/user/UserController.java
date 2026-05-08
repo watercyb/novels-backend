@@ -3,17 +3,21 @@ Post /signup JSON: {username, email, password} -> UserDTO
 Post /login JSON: {email, password} -> UserDTO
 Post /refresh
 Post /logout (authenticated)
-Post /update (authenticated) form-data: avatarImage(file), username(String) -> UserDTO
-Post /update_password (authenticated) form-data: {oldPassword, newPassword} -> UserDTO
+Post /update (authenticated) form-data: avatarImage(file), username(String)
+Post /update_password (authenticated) form-data: {oldPassword, newPassword}
+Post /forgot_password form-data: {email} -> UserDTO
+Post /reset_password form-data: {email, code, password}
 */
 
 package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.mail.MailService;
 import com.blueberryjoy.novel.security.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -28,6 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -40,6 +45,12 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private FileService repository;
+    @Autowired
+    private MailService mailService;
+    @Autowired
+    private ResetPasswordCodeStore resetPasswordCodeStore;
+    @Value("${BASE_URL}")
+    private String url;
 
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@RequestBody Map<String, Object> body) {
@@ -49,9 +60,10 @@ public class UserController {
             String password = (String) body.get("password");
             if (username == null || email == null || password == null)
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
-            User user = userService.createUser(username, email, password);
+            User user = userService.createUser(username, email, password, "USER");
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+            mailService.sendWelcomeMail(email, username);
             return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
@@ -177,7 +189,51 @@ public class UserController {
             userService.updatePassword(user, newPassword);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Uploaded successfully", null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/forgot_password")
+    public ResponseEntity<?> sendResetCode(@RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            if (email == null || email.isEmpty())
+                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+            User user = userService.findUserByEmail(email);
+            if (user != null) {
+                String code = UUID.randomUUID().toString();
+                mailService.sendResetPasswordMail(email, user.getUsername(), url + "/reset_password?email=" + email + "&code=" + code);
+                resetPasswordCodeStore.set(user.getId(), code);
+            }
+            return ResponseEntity.ok().body(new UserResponse(true, "If an account exists for this email, you will receive a password reset email shortly.", null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/reset_password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, Object> body) {
+        try {
+            String email = (String) body.get("email");
+            String code = (String) body.get("code");
+            String password = (String) body.get("password");
+            if (email == null || email.isEmpty() || code == null || code.isEmpty() || password == null || password.isEmpty())
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+            User user = userService.findUserByEmail(email);
+            if (user == null || !resetPasswordCodeStore.check(user.getId(), code))
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+            userService.updatePassword(user, password);
+            resetPasswordCodeStore.remove(user.getId());
+            ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
+            ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Password reset successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
