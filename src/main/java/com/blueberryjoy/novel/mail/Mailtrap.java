@@ -14,14 +14,16 @@ public class Mailtrap {
     private final OkHttpClient client;
     @Value("${MAILTRAP_TOKEN}")
     private String token;
+    @Value("${EMAIL_ADDRESS}")
+    private String from;
 
     public Mailtrap() {
         this.client = new OkHttpClient().newBuilder().build();
     }
 
-    public void sendEmail(String from, String to, String subject, String text, String category) {
+    public void sendEmail(String to, String subject, String html, String category) {
         MediaType mediaType = MediaType.parse("application/json");
-        EmailRequest emailRequest = new EmailRequest(new From(from, "Novels"), List.of(new To(to)), subject, text, category);
+        EmailRequest emailRequest = new EmailRequest(new From(from, "Novels"), List.of(new To(to)), subject, html, category);
         RequestBody body = RequestBody.create(new ObjectMapper().writeValueAsString(emailRequest), mediaType);
         Request request = new Request.Builder().url("https://send.api.mailtrap.io/api/send").method("POST", body).addHeader("Authorization", "Bearer " + token).addHeader("Content-Type", "application/json").build();
         try {
@@ -36,7 +38,7 @@ public class Mailtrap {
         }
     }
 
-    record EmailRequest(From from, List<To> to, String subject, String text, String category) {
+    record EmailRequest(From from, List<To> to, String subject, String html, String category) {
     }
 
     record From(String email, String name) {
