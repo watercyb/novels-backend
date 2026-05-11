@@ -7,6 +7,8 @@ import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserRepository;
+import org.jsoup.Jsoup;
+import org.owasp.html.PolicyFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,6 +36,8 @@ public class ChapterService {
     private UserRepository userRepository;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private PolicyFactory policyFactory;
 
     public List<ChapterDTO> getChapter(Long id, boolean adjacent) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
@@ -63,6 +67,7 @@ public class ChapterService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        content = sanitizeHtml(content);
         int wordCount = countWordsEnZh(content);
         int size = content.getBytes(StandardCharsets.UTF_8).length;
         Chapter chapter = new Chapter();
@@ -95,6 +100,7 @@ public class ChapterService {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null || !Objects.equals(chapter.getNovel().getId(), novel.getId()) || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+        content = sanitizeHtml(content);
         int wordCountOld = chapter.getWordCount();
         int wordCountNew = countWordsEnZh(content);
         int size = content.getBytes(StandardCharsets.UTF_8).length;
@@ -220,6 +226,7 @@ public class ChapterService {
 
     public static int countWordsEnZh(String text) {
         if (text == null || text.isBlank()) return 0;
+        text = Jsoup.parse(text).text();
 
         int count = 0;
 
@@ -248,4 +255,9 @@ public class ChapterService {
 
         return count;
     }
+
+    public String sanitizeHtml(String rawHtml) {
+        return policyFactory.sanitize(rawHtml);
+    }
+
 }
