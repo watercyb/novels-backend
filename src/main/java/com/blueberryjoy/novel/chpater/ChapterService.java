@@ -39,25 +39,42 @@ public class ChapterService {
     @Autowired
     private PolicyFactory policyFactory;
 
-    public List<ChapterDTO> getChapter(Long id, boolean adjacent) {
+    public List<ChapterDTO> getChapter(User user, Long id, boolean adjacent, boolean published) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
-        if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
+        if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0 || (!chapter.isPublished() && published) || (!chapter.isPublished() && !Objects.equals(chapter.getNovel().getAuthor().getId(), user.getId())))
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
         List<ChapterDTO> res = new ArrayList<>();
         res.add(new ChapterDTO(chapter));
-        if (adjacent) {
-            ChapterDTO prv = chapterRepository
-                    .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
-            ChapterDTO next = chapterRepository
-                    .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                    .stream()
-                    .findFirst()
-                    .orElse(null);
-            res.add(prv);
-            res.add(next);
+        if (published) {
+            if (adjacent) {
+                ChapterDTO prv = chapterRepository
+                        .findPrevPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+                ChapterDTO next = chapterRepository
+                        .findNextPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+                res.add(prv);
+                res.add(next);
+            }
+        } else {
+            if (adjacent) {
+                ChapterDTO prv = chapterRepository
+                        .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+                ChapterDTO next = chapterRepository
+                        .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
+                        .stream()
+                        .findFirst()
+                        .orElse(null);
+                res.add(prv);
+                res.add(next);
+            }
         }
         return res;
     }
@@ -81,16 +98,10 @@ public class ChapterService {
         }
         chapter.setOrderIndex(getNextOrderIndex(novel.getId()));
         chapter.setWordCount(wordCount);
+        chapter.setPublished(false);
         chapterRepository.save(chapter);
-        novel.updateChapterCount(1);
-        novel.updateWordCount(wordCount);
-        novelRepository.save(novel);
-        user.updateChapterCount(1);
-        user.updateWordCount(wordCount);
-        userRepository.save(user);
-        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex());
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.isPublished());
     }
-
 
     @Transactional
     public ChapterDTO updateChapter(User user, long novelId, long chapterId, String title, String content) {
@@ -115,17 +126,27 @@ public class ChapterService {
         }
         chapter.setWordCount(wordCountNew);
         chapterRepository.save(chapter);
-        novel.updateWordCount(wordCountNew - wordCountOld);
+        if (chapter.isPublished()) {
+            novel.updateWordCount(wordCountNew - wordCountOld);
+            user.updateWordCount(wordCountNew - wordCountOld);
+            novel.setLastUpdatedAt(chapter.getUpdatedAt());
+            novel.setLastChapterTitle(chapter.getTitle());
+        }
         novel.setLastChapterTitle(title);
-        novel.setLastUpdatedAt(chapter.getUpdatedAt());
         novelRepository.save(novel);
-        user.updateWordCount(wordCountNew - wordCountOld);
         userRepository.save(user);
-        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex());
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.isPublished());
     }
 
-    public Page<ChapterDTO> getChapters(long novelId, Pageable pageable) {
-        return chapterRepository.findChapterPreview(novelId, pageable);
+    public Page<ChapterDTO> getChapters(User user, long novelId, Pageable pageable, boolean published) {
+        if (published) {
+            return chapterRepository.findPublishedChapterPreview(novelId, pageable);
+        } else {
+            Novel novel = novelRepository.findById(novelId).orElse(null);
+            if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
+                throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            return chapterRepository.findChapterPreview(novelId, pageable);
+        }
     }
 
     public BigDecimal getNextOrderIndex(long novelId) {
@@ -153,7 +174,7 @@ public class ChapterService {
             throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
         if (next == null) {
             if (chapter.getOrderIndex().compareTo(target.getOrderIndex()) == 0)
-                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
+                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
             BigDecimal newIndex = chapter.getOrderIndex().setScale(0, RoundingMode.CEILING).add(BigDecimal.ONE);
             target.setOrderIndex(newIndex);
             chapterRepository.save(target);
@@ -161,7 +182,7 @@ public class ChapterService {
             if (!Objects.requireNonNull(novelRepository.findById(next.getNovelId()).orElse(null)).getAuthor().getId().equals(user.getId()))
                 throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
             if (next.getId() == targetId)
-                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
+                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
             BigDecimal orderIndexChapter = chapter.getOrderIndex();
             BigDecimal orderIndexNext = next.getOrderIndex();
             BigDecimal newIndex = orderIndexChapter
@@ -174,7 +195,7 @@ public class ChapterService {
             target.setOrderIndex(newIndex);
             chapterRepository.save(target);
         }
-        return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex());
+        return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
     }
 
     @Transactional
@@ -191,12 +212,15 @@ public class ChapterService {
         commentRepository.deleteRepliesByChapter(chapterId);
         commentRepository.deleteCommentsByChapter(chapterId);
         chapterRepository.delete(chapter);
-        novel.updateWordCount(-wordCount);
-        novel.setLastUpdatedAt(chapter.getUpdatedAt());
-        novel.updateChapterCount(-1);
+
+        if (chapter.isPublished()) {
+            novel.setLastUpdatedAt(chapterRepository.now());
+            novel.updateWordCount(-wordCount);
+            novel.updateChapterCount(-1);
+            user.updateWordCount(-wordCount);
+            user.updateChapterCount(-1);
+        }
         novelRepository.save(novel);
-        user.updateWordCount(-wordCount);
-        user.updateChapterCount(-1);
         userRepository.save(user);
     }
 
@@ -254,6 +278,27 @@ public class ChapterService {
         }
 
         return count;
+    }
+
+    @Transactional
+    public void publishChapter(User user, long chapterId) {
+        Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null)
+            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+        Novel novel = chapter.getNovel();
+        if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
+            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+        chapter.setPublished(true);
+        chapterRepository.save(chapter);
+        int wordCount = chapter.getWordCount();
+        novel.updateChapterCount(1);
+        novel.updateWordCount(wordCount);
+        novel.setLastUpdatedAt(chapter.getUpdatedAt());
+        novel.setLastChapterTitle(chapter.getTitle());
+        novelRepository.save(novel);
+        user.updateChapterCount(1);
+        user.updateWordCount(wordCount);
+        userRepository.save(user);
     }
 
     public String sanitizeHtml(String rawHtml) {

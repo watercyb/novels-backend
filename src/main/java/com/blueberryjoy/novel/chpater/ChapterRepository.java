@@ -8,18 +8,30 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(
-                c.id, c.novel.id, c.title, c.orderIndex
+                c.id, c.novel.id, c.title, c.orderIndex, c.published
             )
             FROM Chapter c
             WHERE c.novel.id = :novelId
             ORDER BY c.orderIndex ASC
             """)
     Page<ChapterDTO> findChapterPreview(@Param("novelId") Long novelId, Pageable pageable);
+
+    @Query("""
+            SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(
+                c.id, c.novel.id, c.title, c.orderIndex, c.published
+            )
+            FROM Chapter c
+            WHERE c.novel.id = :novelId
+                  AND c.published = true
+            ORDER BY c.orderIndex ASC
+            """)
+    Page<ChapterDTO> findPublishedChapterPreview(@Param("novelId") Long novelId, Pageable pageable);
 
     @Query("SELECT MAX(c.orderIndex) FROM Chapter c WHERE c.novel.id = :novelId")
     BigDecimal findLastOrderIndex(@Param("novelId") Long novelId);
@@ -40,21 +52,8 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("DELETE FROM Chapter c WHERE c.novel.id = :novelId")
     void deleteByNovelId(Long novelId);
 
-    @Query(value = """
-                SELECT *
-                FROM chapters c
-                WHERE c.novel.id = :novelId
-                  AND c.orderIndex > :orderIndex
-                ORDER BY c.orderIndex ASC
-                LIMIT 1
-            """, nativeQuery = true)
-    Chapter findNextChapter(
-            @Param("novelId") Long novelId,
-            @Param("orderIndex") BigDecimal orderIndex
-    );
-
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex < :orderIndex
@@ -67,7 +66,21 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     );
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                FROM Chapter c
+                WHERE c.novel.id = :novelId
+                  AND c.orderIndex < :orderIndex
+                  AND c.published = true
+                ORDER BY c.orderIndex DESC
+            """)
+    List<ChapterDTO> findPrevPublishedChapterDTO(
+            @Param("novelId") Long novelId,
+            @Param("orderIndex") BigDecimal orderIndex,
+            Pageable pageable
+    );
+
+    @Query("""
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex > :orderIndex
@@ -79,10 +92,27 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
             Pageable pageable
     );
 
+    @Query("""
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                FROM Chapter c
+                WHERE c.novel.id = :novelId
+                  AND c.orderIndex > :orderIndex
+                  AND c.published = true
+                ORDER BY c.orderIndex ASC
+            """)
+    List<ChapterDTO> findNextPublishedChapterDTO(
+            @Param("novelId") Long novelId,
+            @Param("orderIndex") BigDecimal orderIndex,
+            Pageable pageable
+    );
+
     @Modifying
     @Query("""
                 DELETE FROM Chapter ch
                 WHERE ch.novel.id = :novelId
             """)
     void deleteChaptersByNovel(@Param("novelId") Long novelId);
+
+    @Query(value = "SELECT CURRENT_TIMESTAMP", nativeQuery = true)
+    LocalDateTime now();
 }

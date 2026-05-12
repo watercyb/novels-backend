@@ -15,6 +15,7 @@ public class ChapterDTO {
     private final BigDecimal orderIndex;
     private final int viewCount;
     private final int wordCount;
+    private final boolean published;
     private final LocalDateTime createdAt;
     private final LocalDateTime updatedAt;
 
@@ -27,11 +28,12 @@ public class ChapterDTO {
         this.orderIndex = chapter.getOrderIndex();
         this.viewCount = chapter.getViewCount();
         this.wordCount = chapter.getWordCount();
+        this.published = chapter.isPublished();
         this.createdAt = chapter.getCreatedAt();
         this.updatedAt = chapter.getUpdatedAt();
     }
 
-    public ChapterDTO(long id, long novelId, String title, BigDecimal orderIndex) {
+    public ChapterDTO(long id, long novelId, String title, BigDecimal orderIndex, boolean published) {
         this.id = id;
         this.novelId = novelId;
         this.title = title;
@@ -40,6 +42,7 @@ public class ChapterDTO {
         this.orderIndex = orderIndex;
         this.viewCount = -1;
         this.wordCount = -1;
+        this.published = published;
         this.createdAt = null;
         this.updatedAt = null;
     }

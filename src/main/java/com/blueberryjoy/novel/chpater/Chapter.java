@@ -10,7 +10,10 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chapters", indexes = {@Index(name = "idx_novel_order", columnList = "novel_id, order_index")})
+@Table(name = "chapters", indexes = {
+        @Index(name = "idx_novel_order", columnList = "novel_id, order_index"),
+        @Index(name = "idx_novel_published_order", columnList = "novel_id, published, order_index")
+})
 @Data
 public class Chapter {
 
@@ -40,6 +43,9 @@ public class Chapter {
 
     @Column(name = "word_count", nullable = false)
     private int wordCount;
+
+    @Column(nullable = false)
+    private boolean published;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
