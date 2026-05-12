@@ -1,0 +1,13 @@
+avatar.php
+cover.php
+chapter.php
+/files
+    /userId%1000
+        /userId
+            avatar.jpg
+            /novelId
+                cover.jpg
+                /chapters
+                    12_digit number.txt
+                /image
+                    uuid.jpg
