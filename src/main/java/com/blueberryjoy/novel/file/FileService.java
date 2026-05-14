@@ -93,6 +93,7 @@ public class FileService {
                 }
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -171,15 +172,15 @@ public class FileService {
                 image = resize(image, avatarSize, avatarSize);
 
             BufferedImage rgbImage = new BufferedImage(
-                    original.getWidth(),
-                    original.getHeight(),
+                    image.getWidth(),
+                    image.getHeight(),
                     BufferedImage.TYPE_INT_RGB
             );
 
             rgbImage.createGraphics().drawImage(image, 0, 0, Color.WHITE, null);
 
             ByteArrayOutputStream arr = new ByteArrayOutputStream();
-            boolean success = ImageIO.write(rgbImage, "jpeg", arr);
+            ImageIO.write(rgbImage, "jpeg", arr);
             return arr.toByteArray();
         } catch (Exception e) {
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -195,13 +196,18 @@ public class FileService {
     }
 
     private BufferedImage resize(BufferedImage img, int width, int height) {
-        Image scaled = img.getScaledInstance(width, height, Image.SCALE_SMOOTH);
-
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D g2d = output.createGraphics();
-        g2d.drawImage(scaled, 0, 0, null);
-        g2d.dispose();
 
+        Graphics2D g2d = output.createGraphics();
+
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+
+        g2d.drawImage(img, 0, 0, width, height, null);
+
+        g2d.dispose();
         return output;
     }
 
