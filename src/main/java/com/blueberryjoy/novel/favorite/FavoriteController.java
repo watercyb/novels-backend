@@ -2,6 +2,7 @@
 Put /{novelId} (authenticated) PathVariable: novelId
 Delete /{favoriteId} (authenticated) PathVariable: favoriteId
 Get /: (authenticated) RequestParam: pageable(Pageable)
+Get /ids: (authenticated) RequestParam: pageable(Pageable)
 */
 
 package com.blueberryjoy.novel.favorite;
@@ -76,6 +77,23 @@ public class FavoriteController {
             User user = (User) auth.getPrincipal();
             Page<NovelDTO> novels = favoriteService.getNovels(user, pageable);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", null, new PageDTO<>(novels)));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/ids")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getFavoriteIds() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to get list of favorites right now.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            List<Long> list = favoriteService.getIds(user);
+            return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", list, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

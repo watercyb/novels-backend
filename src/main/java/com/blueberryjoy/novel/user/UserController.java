@@ -82,12 +82,16 @@ public class UserController {
             User user = userService.findUserByEmail(email);
             if (user == null || !passwordEncoder.matches(password, user.getPasswordHash()))
                 throw new ApiException("Incorrect email or password. Please try again.", HttpStatus.UNAUTHORIZED);
+            System.out.println("aaaaaaaaaaaaaaaaaa");
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
+            System.out.println("bbbbbbbbbbbbbbbbbb");
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+            System.out.println("ccccccccccccccccc");
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

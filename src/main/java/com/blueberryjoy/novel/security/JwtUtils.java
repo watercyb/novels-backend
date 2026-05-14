@@ -9,12 +9,14 @@ import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.params.SetParams;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Date;
 import java.util.Objects;
 
@@ -29,7 +31,7 @@ public class JwtUtils {
     @Autowired
     private UserService userService;
     @Autowired
-    private Jedis jedis;
+    private RedisTemplate<String, Object> redisTemplate;
 
     @PostConstruct
     public void init() {
@@ -87,7 +89,7 @@ public class JwtUtils {
             Integer userId = claims.get("userId", Integer.class);
             if (userId == null)
                 return null;
-            String savedToken = jedis.get("Novels_RefreshToken_" + userId);
+            String savedToken = Objects.requireNonNull(redisTemplate.opsForValue().get("Novels_RefreshToken_" + userId)).toString();
             if (!Objects.equals(savedToken, token)) return null;
             return userService.findUserById(userId);
         } catch (Exception e) {
@@ -108,7 +110,8 @@ public class JwtUtils {
 
     public ResponseCookie getRefreshCookie(User user) {
         String refreshToken = generateRefreshToken(user);
-        jedis.set("Novels_RefreshToken_" + user.getId(), refreshToken, SetParams.setParams().ex(14 * 24 * 60 * 60));
+        redisTemplate.opsForValue().set("Novels_RefreshToken_" + user.getId(), refreshToken, Duration.ofMinutes(14 * 24 * 60 * 60));
+
         return ResponseCookie.from("refreshToken", refreshToken)
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))
@@ -130,7 +133,7 @@ public class JwtUtils {
 
     public ResponseCookie getEmptyRefreshCookie(@Nullable User user) {
         if (user != null)
-            jedis.del("Novels_RefreshToken_" + user.getId());
+            redisTemplate.delete("Novels_RefreshToken_" + user.getId());
         return ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))
