@@ -97,7 +97,7 @@ public class MailService {
                                                        %s
                                                    </a>
                                                    <br><br>
-                                                   This link will expire in {{expire_minutes}} minutes.
+                                                   This link will expire in 10 minutes.
                                                    <br><br>
                                                    If you did not request a password reset, you can safely ignore this email.
                                                </td>

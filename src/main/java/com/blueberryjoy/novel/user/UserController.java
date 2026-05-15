@@ -2,11 +2,12 @@
 Post /signup JSON: {username, email, password} -> UserDTO
 Post /login JSON: {email, password} -> UserDTO
 Post /refresh
-Post /logout (authenticated)
+Post /logout
 Post /update (authenticated) form-data: avatarImage(file), username(String)
 Post /update_password (authenticated) form-data: {oldPassword, newPassword}
 Post /forgot_password form-data: {email} -> UserDTO
 Post /reset_password form-data: {email, code, password}
+Get (authenticated) -> UserDTO
 */
 
 package com.blueberryjoy.novel.user;
@@ -120,7 +121,6 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> logout() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -208,7 +208,7 @@ public class UserController {
             User user = userService.findUserByEmail(email);
             if (user != null) {
                 String code = UUID.randomUUID().toString();
-                mailService.sendResetPasswordMail(email, user.getUsername(), url + "/reset_password?email=" + email + "&code=" + code);
+                mailService.sendResetPasswordMail(email, user.getUsername(), url + "/reset-password?email=" + email + "&code=" + code);
                 resetPasswordCodeStore.set(user.getId(), code);
             }
             return ResponseEntity.ok().body(new UserResponse(true, "If an account exists for this email, you will receive a password reset email shortly.", null));
@@ -235,6 +235,23 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Password reset successfully", null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> getUser() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("Unable to delete chapter right now.", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            return ResponseEntity.ok().body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

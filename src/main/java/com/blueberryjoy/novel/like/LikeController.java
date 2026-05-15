@@ -72,7 +72,7 @@ public class LikeController {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> getFavorites() {
+    public ResponseEntity<?> getLikes() {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
