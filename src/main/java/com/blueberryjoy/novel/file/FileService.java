@@ -2,6 +2,7 @@ package com.blueberryjoy.novel.file;
 
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.novel.Novel;
+import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -42,11 +43,9 @@ public class FileService {
                         .addTextBody("content", content)
                         .addTextBody("remove", String.valueOf(isRemove));
 
-                if (contentUrl != null) {
-                    String[] strs = contentUrl.split("/");
-                    if (strs.length > 0)
-                        builder.addTextBody("filename", strs[strs.length - 1]);
-                }
+                String oldFilename = getFilename(contentUrl);
+                if (oldFilename != null)
+                    builder.addTextBody("old_filename", oldFilename);
 
                 org.apache.http.HttpEntity entity = builder.build();
 
@@ -67,7 +66,7 @@ public class FileService {
         }
     }
 
-    public String uploadAvatar(MultipartFile file, long userId) {
+    public String uploadAvatar(MultipartFile file, long userId, String avatarUrl) {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -76,9 +75,12 @@ public class FileService {
 
                 byte[] bytes = formatImage(file, true);
 
-                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                         .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, "avatar.jpg")
-                        .addTextBody("token", token).addTextBody("user_id", String.valueOf(userId)).build();
+                        .addTextBody("token", token).addTextBody("user_id", String.valueOf(userId));
+                String oldFilename = getFilename(avatarUrl);
+                if (oldFilename != null) builder.addTextBody("old_filename", oldFilename);
+                org.apache.http.HttpEntity entity = builder.build();
 
                 post.setEntity(entity);
 
@@ -93,12 +95,11 @@ public class FileService {
                 }
             }
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    public String uploadNovelCover(MultipartFile file, long userId, long novelId) {
+    public String uploadNovelCover(MultipartFile file, long userId, long novelId, String coverUrl) {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
@@ -107,12 +108,14 @@ public class FileService {
 
                 byte[] bytes = formatImage(file, false);
 
-                org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
+                MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                         .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, "cover.jpg")
                         .addTextBody("token", token)
                         .addTextBody("user_id", String.valueOf(userId))
-                        .addTextBody("novel_id", String.valueOf(novelId))
-                        .build();
+                        .addTextBody("novel_id", String.valueOf(novelId));
+                String oldFilename = getFilename(coverUrl);
+                if (oldFilename != null) builder.addTextBody("old_filename", oldFilename);
+                org.apache.http.HttpEntity entity = builder.build();
 
                 post.setEntity(entity);
 
@@ -136,13 +139,15 @@ public class FileService {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "cover.php");
 
-                String url = novel.getCoverUrl();
-                if (url == null) return;
+                String oldFilename = getFilename(novel.getCoverUrl());
+                if (oldFilename == null) return;
 
                 org.apache.http.HttpEntity entity = MultipartEntityBuilder.create()
                         .addTextBody("token", token)
                         .addTextBody("user_id", String.valueOf(userId))
                         .addTextBody("novel_id", String.valueOf(novel.getId()))
+                        .addTextBody("old_filename", oldFilename)
+                        .addTextBody("remove", "true")
                         .build();
 
                 post.setEntity(entity);
@@ -163,13 +168,13 @@ public class FileService {
 
     private byte[] formatImage(MultipartFile file, boolean resize) {
         try {
-            BufferedImage original = ImageIO.read(file.getInputStream());
-            if (original == null)
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null)
                 throw new ApiException("Invalid image file", HttpStatus.BAD_REQUEST);
 
-            BufferedImage image = cropToSquare(original);
+            //BufferedImage image = cropToSquare(original);
             if (resize)
-                image = resize(image, avatarSize, avatarSize);
+                image = resize(image, avatarSize);
 
             BufferedImage rgbImage = new BufferedImage(
                     image.getWidth(),
@@ -209,6 +214,48 @@ public class FileService {
 
         g2d.dispose();
         return output;
+    }
+
+    private BufferedImage resize(BufferedImage img, int limit) {
+        int originalWidth = img.getWidth();
+        int originalHeight = img.getHeight();
+
+        // No resize needed
+        if (originalWidth <= limit && originalHeight <= limit) {
+            return img;
+        }
+
+        double scale = Math.min(
+                (double) limit / originalWidth,
+                (double) limit / originalHeight
+        );
+
+        int newWidth = (int) Math.round(originalWidth * scale);
+        int newHeight = (int) Math.round(originalHeight * scale);
+
+        BufferedImage output = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g2d = output.createGraphics();
+
+        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
+                RenderingHints.VALUE_INTERPOLATION_BICUBIC);
+        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
+                RenderingHints.VALUE_RENDER_QUALITY);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+                RenderingHints.VALUE_ANTIALIAS_ON);
+
+        g2d.drawImage(img, 0, 0, newWidth, newHeight, null);
+        g2d.dispose();
+
+        return output;
+    }
+
+    public String getFilename(String url) {
+        if (url != null) {
+            String[] strs = url.split("/");
+            if (strs.length > 1)
+                return strs[strs.length - 1];
+        }
+        return null;
     }
 
     public record UploadResponse(boolean success, String message, String filename) {

@@ -113,7 +113,7 @@ public class ChapterController {
             Number chapterId = (Number) body.get("chapterId");
             String title = (String) body.get("title");
             String content = (String) body.get("content");
-            if (novelId == null || title == null || content == null)
+            if (novelId == null || title == null || title.isEmpty() || content == null || content.isEmpty())
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
             if (chapterId == null) {
                 ChapterDTO chapter = chapterService.createChapter(user, novelId.longValue(), title, content);

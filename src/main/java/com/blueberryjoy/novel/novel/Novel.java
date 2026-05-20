@@ -23,7 +23,17 @@ import java.util.Set;
                 @Index(name = "idx_user_like", columnList = "user_id, like_count DESC"),
                 @Index(name = "idx_user_chapter", columnList = "user_id, chapter_count DESC"),
                 @Index(name = "idx_user_word", columnList = "user_id, word_count DESC"),
-                @Index(name = "idx_user_last", columnList = "user_id, last_updated_at DESC")
+                @Index(name = "idx_user_last", columnList = "user_id, last_updated_at DESC"),
+                @Index(name = "idx_type_like", columnList = "type, like_count DESC"),
+                @Index(name = "idx_type_chapter", columnList = "type, chapter_count DESC"),
+                @Index(name = "idx_type_word", columnList = "type, word_count DESC"),
+                @Index(name = "idx_type_last", columnList = "type, last_updated_at DESC"),
+                @Index(name = "idx_type_author_created", columnList = "type, user_id, created_at DESC"),
+                @Index(name = "idx_type_user_title", columnList = "type, user_id, title"),
+                @Index(name = "idx_type_user_like", columnList = "type, user_id, like_count DESC"),
+                @Index(name = "idx_type_user_chapter", columnList = "type, user_id, chapter_count DESC"),
+                @Index(name = "idx_type_user_word", columnList = "type, user_id, word_count DESC"),
+                @Index(name = "idx_type_user_last", columnList = "type, user_id, last_updated_at DESC")
         }
 )
 @Getter
@@ -76,6 +86,9 @@ public class Novel {
     @Column(name = "last_updated_at", nullable = false)
     private LocalDateTime lastUpdatedAt;
 
+    @Enumerated(EnumType.STRING)
+    private Novel.Type type;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -100,5 +113,20 @@ public class Novel {
 
     public void updateWordCount(int n) {
         wordCount += n;
+    }
+
+    public enum Type {
+        ORIGINAL, TRANSLATION;
+
+        public static Type getType(String value) {
+            if (value == null) {
+                return null;
+            }
+            try {
+                return Type.valueOf(value.toUpperCase().trim());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 }

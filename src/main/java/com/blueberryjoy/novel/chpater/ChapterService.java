@@ -117,12 +117,15 @@ public class ChapterService {
         int size = content.getBytes(StandardCharsets.UTF_8).length;
         chapter.setTitle(title);
         if (size > 30000) {
-            String url = fileService.uploadChapter(novel, user.getId(), null, content, false);
+            String url = fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, false);
             chapter.setContent(null);
             chapter.setContentUrl(url);
         } else {
             chapter.setContent(content);
-            chapter.setContentUrl(null);
+            if (chapter.getContentUrl() != null) {
+                fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, true);
+                chapter.setContentUrl(null);
+            }
         }
         chapter.setWordCount(wordCountNew);
         chapterRepository.save(chapter);

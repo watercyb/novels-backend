@@ -1,6 +1,6 @@
 /*
 Get /{novelId} PathVariable: novelId -> NovelDTO
-Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable) -> PageDTO<NovelDTO>
+Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable), type(String) -> PageDTO<NovelDTO>
 Post / (authenticated) form-data: avatarImage(file), id(long), username(String), title(String), description(String) -> NovelDTO
 Delete /{novelId} (authenticated) PathVariable: novelId
 Put /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
@@ -48,23 +48,23 @@ public class NovelController {
     }
 
     @GetMapping
-    public ResponseEntity<?> getNovelsByUserId(@RequestParam(required = false) Long userId, @RequestParam(required = false) String title, @RequestParam(required = false) List<Long> tagIds, Pageable pageable) {
+    public ResponseEntity<?> getNovelsByUserId(@RequestParam(required = false) Long userId, @RequestParam(required = false) String title, @RequestParam(required = false) List<Long> tagIds, Pageable pageable, @RequestParam(required = false) String type) {
         try {
             pageable = filterPageable(pageable);
             if (userId == null && title == null && tagIds == null) {
-                Page<NovelDTO> novels = novelService.getAllNovels(pageable);
+                Page<NovelDTO> novels = novelService.getAllNovels(pageable, type);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
             } else if (userId != null) {
-                Page<NovelDTO> novels = novelService.getNovelsByUserId(userId, pageable);
+                Page<NovelDTO> novels = novelService.getNovelsByUserId(userId, pageable, type);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
             } else if (title == null) {
-                Page<NovelDTO> novels = novelService.searchByTags(tagIds, pageable);
+                Page<NovelDTO> novels = novelService.searchByTags(tagIds, pageable, type);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
             } else if (tagIds == null) {
-                Page<NovelDTO> novels = novelService.searchByKeyword(title, pageable);
+                Page<NovelDTO> novels = novelService.searchByKeyword(title, pageable, type);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
             } else {
-                Page<NovelDTO> novels = novelService.searchByKeywordAndTag(title, tagIds, pageable);
+                Page<NovelDTO> novels = novelService.searchByKeywordAndTag(title, tagIds, pageable, type);
                 return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", null, new PageDTO<>(novels)));
             }
         } catch (ApiException e) {
@@ -126,7 +126,8 @@ public class NovelController {
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to add tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (novelId == null || tagId == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+            if (novelId == null || tagId == null)
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             novelService.addTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null, null));
         } catch (ApiException e) {
@@ -145,7 +146,8 @@ public class NovelController {
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to remove tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (novelId == null || tagId == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+            if (novelId == null || tagId == null)
+                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             novelService.removeTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null, null));
         } catch (ApiException e) {

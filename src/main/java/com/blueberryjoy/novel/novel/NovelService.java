@@ -60,7 +60,7 @@ public class NovelService {
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
+                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId(), novel.getCoverUrl());
                 if (fileName == null || fileName.isEmpty())
                     throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
@@ -111,42 +111,78 @@ public class NovelService {
     }
 
     @Transactional
-    public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable) {
+    public Page<NovelDTO> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable, String type) {
         Page<Novel> novels;
+        Novel.Type novelType = Novel.Type.getType(type);
         if (pageable.getSort().isSorted()) {
-            novels = novelRepository.searchByKeywordAndTagSort(keyword, tags, pageable);
+            if (novelType == null) {
+                novels = novelRepository.searchByKeywordAndTagSort(keyword, tags, pageable);
+            } else {
+                novels = novelRepository.searchByKeywordTagAndTypeSort(keyword, tags, novelType.name(), pageable);
+            }
         } else {
-            novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+            if (novelType == null) {
+                novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+            } else {
+                novels = novelRepository.searchByKeywordTagAndType(keyword, tags, novelType.name(), pageable);
+            }
         }
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> searchByKeyword(String keyword, Pageable pageable) {
+    public Page<NovelDTO> searchByKeyword(String keyword, Pageable pageable, String type) {
         Page<Novel> novels;
+        Novel.Type novelType = Novel.Type.getType(type);
         if (pageable.getSort().isSorted()) {
-            novels = novelRepository.searchByKeywordSort(keyword, pageable);
+            if (novelType == null) {
+                novels = novelRepository.searchByKeywordSort(keyword, pageable);
+            } else {
+                novels = novelRepository.searchByKeywordAndTypeSort(keyword, novelType.name(), pageable);
+            }
         } else {
-            novels = novelRepository.searchByKeyword(keyword, pageable);
+            if (novelType == null) {
+                novels = novelRepository.searchByKeyword(keyword, pageable);
+            } else {
+                novels = novelRepository.searchByKeywordAndType(keyword, novelType.name(), pageable);
+            }
         }
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> searchByTags(List<Long> tags, Pageable pageable) {
-        Page<Novel> novels = novelRepository.searchByTags(tags, pageable);
+    public Page<NovelDTO> searchByTags(List<Long> tags, Pageable pageable, String type) {
+        Page<Novel> novels;
+        Novel.Type novelType = Novel.Type.getType(type);
+        if (novelType == null) {
+            novels = novelRepository.searchByTags(tags, pageable);
+        } else {
+            novels = novelRepository.searchByTagsAndType(tags, novelType.name(), pageable);
+        }
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> getNovelsByUserId(long userId, Pageable pageable) {
-        Page<Novel> novels = novelRepository.searchByUseId(userId, pageable);
+    public Page<NovelDTO> getNovelsByUserId(long userId, Pageable pageable, String type) {
+        Page<Novel> novels;
+        Novel.Type novelType = Novel.Type.getType(type);
+        if (novelType == null) {
+            novels = novelRepository.searchByUseId(userId, pageable);
+        } else {
+            novels = novelRepository.searchByUseIdAndType(userId, novelType.name(), pageable);
+        }
         return novels.map(NovelDTO::new);
     }
 
     @Transactional
-    public Page<NovelDTO> getAllNovels(Pageable pageable) {
-        Page<Novel> novels = novelRepository.queryAllNovels(pageable);
+    public Page<NovelDTO> getAllNovels(Pageable pageable, String type) {
+        Page<Novel> novels;
+        Novel.Type novelType = Novel.Type.getType(type);
+        if (novelType == null) {
+            novels = novelRepository.queryAllNovels(pageable);
+        } else {
+            novels = novelRepository.queryAllNovelsByType(novelType.name(), pageable);
+        }
         return novels.map(NovelDTO::new);
     }
 
@@ -194,7 +230,7 @@ public class NovelService {
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId());
+                String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId(), novel.getCoverUrl());
                 if (fileName == null || fileName.isEmpty())
                     throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);

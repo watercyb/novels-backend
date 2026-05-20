@@ -3,7 +3,7 @@ Post /signup JSON: {username, email, password} -> UserDTO
 Post /login JSON: {email, password} -> UserDTO
 Post /refresh
 Post /logout
-Post /update (authenticated) form-data: avatarImage(file), username(String)
+Post /update (authenticated) form-data: avatarImage(file), username(String) -> UserDTO
 Post /update_password (authenticated) form-data: {oldPassword, newPassword}
 Post /forgot_password form-data: {email} -> UserDTO
 Post /reset_password form-data: {email, code, password}
@@ -31,6 +31,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -152,21 +153,23 @@ public class UserController {
 
             if (avatarImage != null && !avatarImage.isEmpty()) {
                 String contentType = avatarImage.getContentType();
-                if (contentType != null && contentType.startsWith("image/")) {
-                    if (avatarImage.getSize() > 5 * 1024 * 1024)
-                        throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
-                    String fileName = repository.uploadAvatar(avatarImage, user.getId());
-                    if (fileName == null || fileName.isEmpty())
-                        throw new ApiException("Unable to update user avatar right now.", HttpStatus.BAD_REQUEST);
-                    user.setAvatarUrl(fileName);
-                }
+                if (contentType == null || !contentType.startsWith("image/"))
+                    throw new ApiException("Unsupported file format", HttpStatus.BAD_REQUEST);
+                if (avatarImage.getSize() > 5 * 1024 * 1024)
+                    throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                String fileName = repository.uploadAvatar(avatarImage, user.getId(), user.getAvatarUrl());
+                if (fileName == null || fileName.isEmpty())
+                    throw new ApiException("Unable to update user avatar right now.", HttpStatus.BAD_REQUEST);
+                user.setAvatarUrl(fileName);
             }
             if (username != null && !username.isEmpty()) user.setUsername(username);
             userService.updateUser(user);
             return ResponseEntity.ok().body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
-        } catch (ApiException e) {
+        } catch (
+                ApiException e) {
             throw e;
-        } catch (Exception e) {
+        } catch (
+                Exception e) {
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

@@ -18,6 +18,7 @@ public class NovelDTO {
     private int likeCount;
     private int chapterCount;
     private int wordCount;
+    private Novel.Type type;
     private String lastChapterTitle;
     private LocalDateTime lastUpdatedAt;
     private LocalDateTime createdAt;
@@ -35,6 +36,7 @@ public class NovelDTO {
         likeCount = novel.getLikeCount();
         chapterCount = novel.getChapterCount();
         wordCount = novel.getWordCount();
+        type = novel.getType();
         lastChapterTitle = novel.getLastChapterTitle();
         lastUpdatedAt = novel.getLastUpdatedAt();
         createdAt = novel.getCreatedAt();
