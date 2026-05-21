@@ -13,6 +13,7 @@ public class NovelDTO {
     private String title;
     private String description;
     private long userId;
+    private String author;
     private String coverUrl;
     private List<String> tags;
     private int likeCount;
@@ -28,6 +29,7 @@ public class NovelDTO {
         title = novel.getTitle();
         description = novel.getDescription();
         userId = novel.getAuthor().getId();
+        author = novel.getAuthor().getUsername();
         coverUrl = novel.getCoverUrl();
         tags = new ArrayList<>();
         for (Tag tag : novel.getTags()) {
