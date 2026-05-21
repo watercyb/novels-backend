@@ -46,10 +46,13 @@ public class NovelService {
     }
 
     @Transactional
-    public NovelDTO createNovel(String title, String description, User user, MultipartFile coverImage) {
+    public NovelDTO createNovel(MultipartFile coverImage, User user, String title, String description, String type) {
         Novel novel = new Novel();
         novel.setTitle(title);
         novel.setDescription(description);
+        Novel.Type novelType = Novel.Type.getType(type);
+        if (novelType == null) throw new ApiException("Novel type cannot be empty.", HttpStatus.BAD_REQUEST);
+        novel.setType(novelType);
         novel.setAuthor(user);
         novel.setCoverUrl("");
         novel.setLastChapterTitle("");
@@ -84,8 +87,7 @@ public class NovelService {
     public void addTag(User user, long novelId, long tagId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
-        if (novel == null || tag == null)
-            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (novel == null || tag == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
         if (!novel.getTags().contains(tag)) {
@@ -99,8 +101,7 @@ public class NovelService {
     public void removeTag(User user, long novelId, long tagId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
-        if (novel == null || tag == null)
-            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (novel == null || tag == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
         if (novel.getTags().contains(tag)) {
@@ -193,10 +194,7 @@ public class NovelService {
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to delete this novel.", HttpStatus.BAD_REQUEST);
 
-        List<Long> tagIds = novel.getTags()
-                .stream()
-                .map(Tag::getId)
-                .toList();
+        List<Long> tagIds = novel.getTags().stream().map(Tag::getId).toList();
         tagRepository.decreaseCount(tagIds);
 
         int chapterCount = novel.getChapterCount();
@@ -216,15 +214,16 @@ public class NovelService {
     }
 
     @Transactional
-    public NovelDTO updateNovel(long id, String title, String description, User user, MultipartFile coverImage) {
+    public NovelDTO updateNovel(MultipartFile coverImage, User user, long id, String title, String description, String type) {
         Novel novel = novelRepository.findById(id).orElse(null);
         if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to update this novel.", HttpStatus.BAD_REQUEST);
-        if (title != null)
-            novel.setTitle(title);
-        if (description != null)
-            novel.setDescription(description);
+        if (title != null) novel.setTitle(title);
+        Novel.Type novelType = Novel.Type.getType(type);
+        if (novelType != null)
+            novel.setType(novelType);
+        if (description != null) novel.setDescription(description);
         if (coverImage != null && !coverImage.isEmpty()) {
             String contentType = coverImage.getContentType();
             if (contentType != null && contentType.startsWith("image/")) {
