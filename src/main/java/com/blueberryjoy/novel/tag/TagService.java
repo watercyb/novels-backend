@@ -19,6 +19,7 @@ public class TagService {
         if (tagRepository.findByName(name).orElse(null) == null && tagRepository.findByNameCN(nameCN).orElse(null) == null) {
             Tag newTag = new Tag();
             newTag.setName(name);
+            newTag.setNameCN(nameCN);
             tagRepository.save(newTag);
             return new TagDTO(newTag);
         } else {
