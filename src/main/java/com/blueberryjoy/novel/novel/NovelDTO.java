@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.tag.Tag;
+import com.blueberryjoy.novel.tag.TagDTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -15,7 +16,7 @@ public class NovelDTO {
     private long userId;
     private String author;
     private String coverUrl;
-    private List<String> tags;
+    private List<TagDTO> tags;
     private int likeCount;
     private int chapterCount;
     private int wordCount;
@@ -33,7 +34,7 @@ public class NovelDTO {
         coverUrl = novel.getCoverUrl();
         tags = new ArrayList<>();
         for (Tag tag : novel.getTags()) {
-            tags.add(tag.getName());
+            tags.add(new TagDTO(tag));
         }
         likeCount = novel.getLikeCount();
         chapterCount = novel.getChapterCount();
