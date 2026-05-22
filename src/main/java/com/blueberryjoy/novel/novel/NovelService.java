@@ -117,15 +117,31 @@ public class NovelService {
         Novel.Type novelType = Novel.Type.getType(type);
         if (pageable.getSort().isSorted()) {
             if (novelType == null) {
-                novels = novelRepository.searchByKeywordAndTagSort(keyword, tags, pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordAndTagChineseSort(keyword, tags, pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordAndTagEnglishSort(keyword, tags, pageable);
+                }
             } else {
-                novels = novelRepository.searchByKeywordTagAndTypeSort(keyword, tags, novelType.name(), pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordTagAndTypeChineseSort(keyword, tags, novelType.name(), pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordTagAndTypeEnglish(keyword, tags, novelType.name(), pageable);
+                }
             }
         } else {
             if (novelType == null) {
-                novels = novelRepository.searchByKeywordAndTag(keyword, tags, pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordAndTagChinese(keyword, tags, pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordAndTagEnglish(keyword, tags, pageable);
+                }
             } else {
-                novels = novelRepository.searchByKeywordTagAndType(keyword, tags, novelType.name(), pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordTagAndTypeChinese(keyword, tags, novelType.name(), pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordTagAndTypeEnglish(keyword, tags, novelType.name(), pageable);
+                }
             }
         }
         return novels.map(NovelDTO::new);
@@ -137,15 +153,31 @@ public class NovelService {
         Novel.Type novelType = Novel.Type.getType(type);
         if (pageable.getSort().isSorted()) {
             if (novelType == null) {
-                novels = novelRepository.searchByKeywordSort(keyword, pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordChineseSort(keyword, pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordEnglishSort(keyword, pageable);
+                }
             } else {
-                novels = novelRepository.searchByKeywordAndTypeSort(keyword, novelType.name(), pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordAndTypeChineseSort(keyword, novelType.name(), pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordAndTypeEnglishSort(keyword, novelType.name(), pageable);
+                }
             }
         } else {
             if (novelType == null) {
-                novels = novelRepository.searchByKeyword(keyword, pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordChinese(keyword, pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordEnglish(keyword, pageable);
+                }
             } else {
-                novels = novelRepository.searchByKeywordAndType(keyword, novelType.name(), pageable);
+                if (containsChinese(keyword)) {
+                    novels = novelRepository.searchByKeywordAndTypeChinese(keyword, novelType.name(), pageable);
+                } else {
+                    novels = novelRepository.searchByKeywordAndTypeEnglish(keyword, novelType.name(), pageable);
+                }
             }
         }
         return novels.map(NovelDTO::new);
@@ -237,5 +269,11 @@ public class NovelService {
         }
         novel = novelRepository.save(novel);
         return new NovelDTO(novel);
+    }
+
+    private static boolean containsChinese(String text) {
+        return text.codePoints()
+                .anyMatch(c -> Character.UnicodeScript.of(c)
+                        == Character.UnicodeScript.HAN);
     }
 }

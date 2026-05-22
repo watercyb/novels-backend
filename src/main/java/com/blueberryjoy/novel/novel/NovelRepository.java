@@ -15,24 +15,24 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     @Query(value = """
                 SELECT DISTINCT n.*,
                 MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
-                FROM novels n
+                FROM novels n FORCE INDEX(ft_title)
                 JOIN novel_tags nt ON n.novel_id = nt.novel_id
                 WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
                 ORDER BY score DESC
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordAndTag(String keyword, List<Long> tags, Pageable pageable);
+    Page<Novel> searchByKeywordAndTagChinese(String keyword, List<Long> tags, Pageable pageable);
 
     @Query(value = """
                 SELECT DISTINCT n.*,
                 MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
-                FROM novels n
+                FROM novels n FORCE INDEX(ft_title)
                 JOIN novel_tags nt ON n.novel_id = nt.novel_id
                 WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                   AND nt.tag_id IN (:tags)
@@ -41,14 +41,14 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                       AND nt.tag_id IN (:tags)
                       AND n.type = :typeStr
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordTagAndType(
+    Page<Novel> searchByKeywordTagAndTypeChinese(
             String keyword,
             List<Long> tags,
             String typeStr,
@@ -57,22 +57,22 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
 
     @Query(value = """
                 SELECT DISTINCT n.*
-                FROM novels n
+                FROM novels n FORCE INDEX(ft_title)
                 JOIN novel_tags nt ON n.novel_id = nt.novel_id
                 WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordAndTagSort(String keyword, List<Long> tags, Pageable pageable);
+    Page<Novel> searchByKeywordAndTagChineseSort(String keyword, List<Long> tags, Pageable pageable);
 
     @Query(value = """
                 SELECT DISTINCT n.*
-                FROM novels n
+                FROM novels n FORCE INDEX(ft_title)
                 JOIN novel_tags nt ON n.novel_id = nt.novel_id
                 WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                   AND nt.tag_id IN (:tags)
@@ -80,14 +80,14 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
             """,
             countQuery = """
                     SELECT COUNT(DISTINCT n.novel_id)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     JOIN novel_tags nt ON n.novel_id = nt.novel_id
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                       AND nt.tag_id IN (:tags)
                       AND n.type = :typeStr
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordTagAndTypeSort(
+    Page<Novel> searchByKeywordTagAndTypeChineseSort(
             String keyword,
             List<Long> tags,
             String typeStr,
@@ -97,58 +97,196 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     @Query(value = """
             SELECT n.*,
                    MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
-            FROM novels n
+            FROM novels n FORCE INDEX(ft_title)
             WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
             ORDER BY score DESC
             """,
             countQuery = """
                     SELECT COUNT(*)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeyword(String keyword, Pageable pageable);
+    Page<Novel> searchByKeywordChinese(String keyword, Pageable pageable);
 
     @Query(value = """
             SELECT n.*,
                    MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
-            FROM novels n
+            FROM novels n FORCE INDEX(ft_title)
             WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
             ORDER BY score DESC
             """,
             countQuery = """
                     SELECT COUNT(*)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordAndType(String keyword, String typeStr, Pageable pageable);
+    Page<Novel> searchByKeywordAndTypeChinese(String keyword, String typeStr, Pageable pageable);
 
     @Query(value = """
             SELECT n.*
-            FROM novels n
+            FROM novels n FORCE INDEX(ft_title)
             WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
             """,
             countQuery = """
                     SELECT COUNT(*)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordSort(String keyword, Pageable pageable);
+    Page<Novel> searchByKeywordChineseSort(String keyword, Pageable pageable);
 
     @Query(value = """
             SELECT n.*
-            FROM novels n
+            FROM novels n FORCE INDEX(ft_title)
             WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
             """,
             countQuery = """
                     SELECT COUNT(*)
-                    FROM novels n
+                    FROM novels n FORCE INDEX(ft_title)
                     WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
                     """,
             nativeQuery = true)
-    Page<Novel> searchByKeywordAndTypeSort(String keyword, String typeStr, Pageable pageable);
+    Page<Novel> searchByKeywordAndTypeChineseSort(String keyword, String typeStr, Pageable pageable);
+
+    @Query(value = """
+                SELECT DISTINCT n.*,
+                MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+                FROM novels n FORCE INDEX(ft_title_en)
+                JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+                ORDER BY score DESC
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordAndTagEnglish(String keyword, List<Long> tags, Pageable pageable);
+
+    @Query(value = """
+                SELECT DISTINCT n.*,
+                MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+                FROM novels n FORCE INDEX(ft_title_en)
+                JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                  AND nt.tag_id IN (:tags)
+                  AND n.type = :typeStr
+                ORDER BY score DESC
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                      AND nt.tag_id IN (:tags)
+                      AND n.type = :typeStr
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordTagAndTypeEnglish(
+            String keyword,
+            List<Long> tags,
+            String typeStr,
+            Pageable pageable
+    );
+
+    @Query(value = """
+                SELECT DISTINCT n.*
+                FROM novels n FORCE INDEX(ft_title_en)
+                JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND nt.tag_id IN (:tags)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordAndTagEnglishSort(String keyword, List<Long> tags, Pageable pageable);
+
+    @Query(value = """
+                SELECT DISTINCT n.*
+                FROM novels n FORCE INDEX(ft_title_en)
+                JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                  AND nt.tag_id IN (:tags)
+                  AND n.type = :typeStr
+            """,
+            countQuery = """
+                    SELECT COUNT(DISTINCT n.novel_id)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    JOIN novel_tags nt ON n.novel_id = nt.novel_id
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                      AND nt.tag_id IN (:tags)
+                      AND n.type = :typeStr
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordTagAndTypeEnglishSort(
+            String keyword,
+            List<Long> tags,
+            String typeStr,
+            Pageable pageable
+    );
+
+    @Query(value = """
+            SELECT n.*,
+                   MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+            FROM novels n FORCE INDEX(ft_title_en)
+            WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+            ORDER BY score DESC
+            """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordEnglish(String keyword, Pageable pageable);
+
+    @Query(value = """
+            SELECT n.*,
+                   MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AS score
+            FROM novels n FORCE INDEX(ft_title_en)
+            WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
+            ORDER BY score DESC
+            """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordAndTypeEnglish(String keyword, String typeStr, Pageable pageable);
+
+    @Query(value = """
+            SELECT n.*
+            FROM novels n FORCE INDEX(ft_title_en)
+            WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+            """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE)
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordEnglishSort(String keyword, Pageable pageable);
+
+    @Query(value = """
+            SELECT n.*
+            FROM novels n FORCE INDEX(ft_title_en)
+            WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
+            """,
+            countQuery = """
+                    SELECT COUNT(*)
+                    FROM novels n FORCE INDEX(ft_title_en)
+                    WHERE MATCH(n.title) AGAINST(:keyword IN BOOLEAN MODE) AND n.type = :typeStr
+                    """,
+            nativeQuery = true)
+    Page<Novel> searchByKeywordAndTypeEnglishSort(String keyword, String typeStr, Pageable pageable);
 
     @Query(value = """
             SELECT DISTINCT n.*

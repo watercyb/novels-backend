@@ -31,6 +31,8 @@ public class FileService {
     @Value("${REPO_TOKEN}")
     private String token;
     private final int avatarSize = 256;
+    private final int coverWidth = 112;
+    private final int coverHeight = 160;
 
     public String uploadChapter(Novel novel, long userId, String contentUrl, String content, boolean isRemove) {
         try {
@@ -73,7 +75,7 @@ public class FileService {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "avatar.php");
 
-                byte[] bytes = formatImage(file, true);
+                byte[] bytes = formatImage(file, 1);
 
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                         .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, "avatar.jpg")
@@ -106,7 +108,7 @@ public class FileService {
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "cover.php");
 
-                byte[] bytes = formatImage(file, false);
+                byte[] bytes = formatImage(file, 2);
 
                 MultipartEntityBuilder builder = MultipartEntityBuilder.create()
                         .addBinaryBody("image", bytes, ContentType.DEFAULT_BINARY, "cover.jpg")
@@ -166,15 +168,18 @@ public class FileService {
         }
     }
 
-    private byte[] formatImage(MultipartFile file, boolean resize) {
+    private byte[] formatImage(MultipartFile file, int type) {
         try {
             BufferedImage image = ImageIO.read(file.getInputStream());
             if (image == null)
                 throw new ApiException("Invalid image file", HttpStatus.BAD_REQUEST);
 
             //BufferedImage image = cropToSquare(original);
-            if (resize)
+            if (type == 1) {
                 image = resize(image, avatarSize);
+            } else {
+                image = resize(image, coverWidth, coverHeight);
+            }
 
             BufferedImage rgbImage = new BufferedImage(
                     image.getWidth(),
