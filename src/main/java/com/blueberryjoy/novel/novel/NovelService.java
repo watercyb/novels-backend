@@ -4,7 +4,9 @@ import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
 import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.favorite.FavoriteRepository;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;
@@ -18,8 +20,11 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -37,6 +42,10 @@ public class NovelService {
     private FileService repository;
     @Autowired
     private CommentRepository commentRepository;
+    @Autowired
+    private LikeRepository likeRepository;
+    @Autowired
+    private FavoriteRepository favoriteRepository;
 
     @Transactional
     public NovelDTO getNovel(Long id) {
@@ -46,7 +55,7 @@ public class NovelService {
     }
 
     @Transactional
-    public NovelDTO createNovel(MultipartFile coverImage, User user, String title, String description, String type) {
+    public NovelDTO createNovel(MultipartFile coverImage, User user, String title, String description, String type, List<Long> tags) {
         Novel novel = new Novel();
         novel.setTitle(title);
         novel.setDescription(description);
@@ -73,6 +82,12 @@ public class NovelService {
         chapter.setTitle("");
         chapter.setNovel(novel);
         chapter.setOrderIndex(BigDecimal.ZERO);
+        if (tags != null && !tags.isEmpty()) {
+            Set<Long> tagIdSet = new HashSet<>(tags);
+            List<Tag> newTags = tagRepository.findAllById(tagIdSet);
+            tagRepository.incrementTagUsage(tagIdSet);
+            novel.setTags(new HashSet<>(newTags));
+        }
         chapter = chapterRepository.save(chapter);
 
         novel.setLastUpdatedAt(chapter.getUpdatedAt());
@@ -234,6 +249,8 @@ public class NovelService {
         commentRepository.deleteRepliesByNovel(novel.getId());
         commentRepository.deleteCommentsByNovel(novel.getId());
         chapterRepository.deleteChaptersByNovel(novel.getId());
+        likeRepository.deleteLikesByNovelId(novel.getId());
+        favoriteRepository.deleteFavoritesByNovelId(novel.getId());
         repository.deleteNovelCover(novel, user.getId());
         novel.getTags().clear();
         novelRepository.save(novel);
@@ -246,7 +263,7 @@ public class NovelService {
     }
 
     @Transactional
-    public NovelDTO updateNovel(MultipartFile coverImage, User user, long id, String title, String description, String type) {
+    public NovelDTO updateNovel(MultipartFile coverImage, User user, long id, String title, String description, String type, List<Long> tags) {
         Novel novel = novelRepository.findById(id).orElse(null);
         if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
@@ -266,6 +283,26 @@ public class NovelService {
                     throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
             }
+        }
+        if (tags != null) {
+            Set<Long> oldTagIds = novel.getTags()
+                    .stream()
+                    .map(Tag::getId)
+                    .collect(Collectors.toSet());
+            Set<Long> newTagIdSet = new HashSet<>(tags);
+
+            Set<Long> removedIds = new HashSet<>(oldTagIds);
+            removedIds.removeAll(newTagIdSet);
+            Set<Long> addedIds = new HashSet<>(newTagIdSet);
+            addedIds.removeAll(oldTagIds);
+
+            List<Tag> newTags = tagRepository.findAllById(newTagIdSet);
+
+            if (!removedIds.isEmpty())
+                tagRepository.decrementTagUsage(removedIds);
+            if (!addedIds.isEmpty())
+                tagRepository.incrementTagUsage(addedIds);
+            novel.setTags(new HashSet<>(newTags));
         }
         novel = novelRepository.save(novel);
         return new NovelDTO(novel);

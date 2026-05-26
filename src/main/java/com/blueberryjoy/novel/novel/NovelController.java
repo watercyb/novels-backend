@@ -1,6 +1,6 @@
 /*
 Get /{novelId} PathVariable: novelId -> NovelDTO
-Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable), type(String) -> PageDTO<NovelDTO>
+Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable), type(String), tags(List<Long>) -> PageDTO<NovelDTO>
 Post / (authenticated) form-data: avatarImage(file), id(long), username(String), title(String), description(String) -> NovelDTO
 Delete /{novelId} (authenticated) PathVariable: novelId
 Put /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
@@ -77,19 +77,19 @@ public class NovelController {
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> createOrUpdateNovel(@RequestParam(value = "coverImage", required = false) MultipartFile coverImage, @RequestParam(value = "id", required = false) Long id, @RequestParam(value = "title", required = false) String title, @RequestParam(value = "description", required = false) String description, @RequestParam(value = "type", required = false) String type) {
+    public ResponseEntity<?> createOrUpdateNovel(@RequestParam(value = "coverImage", required = false) MultipartFile coverImage, @RequestParam(value = "id", required = false) Long id, @RequestParam(value = "title", required = false) String title, @RequestParam(value = "description", required = false) String description, @RequestParam(value = "type", required = false) String type, @RequestParam(value = "tags", required = false) List<Long> tags) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to create novel right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (id != null) {
-                NovelDTO novel = novelService.updateNovel(coverImage, user, id, title, description, type);
+                NovelDTO novel = novelService.updateNovel(coverImage, user, id, title, description, type, tags);
                 return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Updated successfully", novel, null));
             } else {
                 if (title == null) throw new ApiException("Title cannot be empty.", HttpStatus.BAD_REQUEST);
                 if (description == null) description = "";
-                NovelDTO novel = novelService.createNovel(coverImage, user, title, description, type);
+                NovelDTO novel = novelService.createNovel(coverImage, user, title, description, type, tags);
                 return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null));
             }
         } catch (ApiException e) {
@@ -113,7 +113,6 @@ public class NovelController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -133,7 +132,6 @@ public class NovelController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -153,7 +151,6 @@ public class NovelController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -172,6 +169,6 @@ public class NovelController {
         );
     }
 
-    record NovelResponse(boolean success, String message, NovelDTO novel, PageDTO<NovelDTO> page) {
+    public record NovelResponse(boolean success, String message, NovelDTO novel, PageDTO<NovelDTO> page) {
     }
 }

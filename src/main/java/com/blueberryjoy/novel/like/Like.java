@@ -13,7 +13,8 @@ import java.time.LocalDateTime;
         name = "likes",
         indexes = {
                 @Index(name = "idx_user", columnList = "user_id"),
-                @Index(name = "idx_user_novel", columnList = "user_id, novel_id")
+                @Index(name = "idx_user_novel", columnList = "user_id, novel_id"),
+                @Index(name = "idx_novel", columnList = "novel_id")
         }
 )
 @Data

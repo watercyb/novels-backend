@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface TagRepository extends JpaRepository<Tag, Long> {
     Optional<Tag> findByName(String name);
@@ -18,4 +19,20 @@ public interface TagRepository extends JpaRepository<Tag, Long> {
 
     @Query("SELECT new com.blueberryjoy.novel.tag.TagDTO(t.id, t.name, t.nameCN, t.tagUsage) FROM Tag t")
     List<TagDTO> findAllDTO();
+
+    @Modifying
+    @Query("""
+                UPDATE Tag t
+                SET t.tagUsage = t.tagUsage + 1
+                WHERE t.id IN :ids
+            """)
+    void incrementTagUsage(Set<Long> ids);
+
+    @Modifying
+    @Query("""
+                UPDATE Tag t
+                SET t.tagUsage = t.tagUsage - 1
+                WHERE t.id IN :ids
+            """)
+    void decrementTagUsage(Set<Long> ids);
 }

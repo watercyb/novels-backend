@@ -31,8 +31,8 @@ public class FileService {
     @Value("${REPO_TOKEN}")
     private String token;
     private final int avatarSize = 256;
-    private final int coverWidth = 112;
-    private final int coverHeight = 160;
+    private final int coverWidth = 896;
+    private final int coverHeight = 1280;
 
     public String uploadChapter(Novel novel, long userId, String contentUrl, String content, boolean isRemove) {
         try {
