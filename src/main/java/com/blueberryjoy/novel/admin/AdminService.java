@@ -43,7 +43,7 @@ public class AdminService {
     public void deleteById(User adminUser, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
-        if (adminUser.getRole() != User.Role.ADMIN)
+        if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
             throw new ApiException("You do not have permission to delete this novel.", HttpStatus.BAD_REQUEST);
         User user = novel.getAuthor();
 
@@ -65,6 +65,20 @@ public class AdminService {
         user.updateNovelCount(-1);
         user.updateChapterCount(-chapterCount);
         user.updateWordCount(-wordCount);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void updateUserRole(User adminUser, long userId, User.Role newRole) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) throw new ApiException("User not found", HttpStatus.BAD_REQUEST);
+        if (user.getRole() == User.Role.SUPERADMIN || newRole == User.Role.SUPERADMIN)
+            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+        if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+        if ((user.getRole() == User.Role.ADMIN || newRole == User.Role.ADMIN) && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+        user.setRole(newRole);
         userRepository.save(user);
     }
 }

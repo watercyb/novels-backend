@@ -119,9 +119,8 @@ public class Novel {
         ORIGINAL, TRANSLATION;
 
         public static Type getType(String value) {
-            if (value == null) {
+            if (value == null)
                 return null;
-            }
             try {
                 return Type.valueOf(value.toUpperCase().trim());
             } catch (IllegalArgumentException e) {

@@ -1,5 +1,6 @@
 package com.blueberryjoy.novel.user;
 
+import com.blueberryjoy.novel.novel.Novel;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -57,6 +58,16 @@ public class User {
     }
 
     public enum Role {
-        USER, AUTHOR, ADMIN, SUPERADMIN
+        USER, AUTHOR, ADMIN, SUPERADMIN;
+
+        public static User.Role getRole(String value) {
+            if (value == null)
+                return null;
+            try {
+                return User.Role.valueOf(value.toUpperCase().trim());
+            } catch (IllegalArgumentException e) {
+                return null;
+            }
+        }
     }
 }
