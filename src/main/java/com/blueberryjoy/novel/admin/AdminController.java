@@ -1,5 +1,5 @@
 /*
-Delete /{novelId} (authenticated) PathVariable: novelId
+Delete /{novelId} (hasAuthority('ADMIN', 'SUPERADMIN')) PathVariable: novelId
 */
 
 
@@ -23,7 +23,7 @@ public class AdminController {
     private AdminService adminService;
 
     @DeleteMapping("/novels/{novelId}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> deleteNovelById(@PathVariable Long novelId) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();

@@ -2,7 +2,6 @@ package com.blueberryjoy.novel.file;
 
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.novel.Novel;
-import org.apache.http.HttpEntity;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -176,9 +175,9 @@ public class FileService {
 
             //BufferedImage image = cropToSquare(original);
             if (type == 1) {
-                image = resize(image, avatarSize);
+                image = resizeAvatar(image);
             } else {
-                image = resize(image, coverWidth, coverHeight);
+                image = resizeCover(image);
             }
 
             BufferedImage rgbImage = new BufferedImage(
@@ -205,7 +204,9 @@ public class FileService {
         return img.getSubimage(x, y, size, size);
     }
 
-    private BufferedImage resize(BufferedImage img, int width, int height) {
+    private BufferedImage resizeCover(BufferedImage img) {
+        int width = coverWidth;
+        int height = coverHeight;
         BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 
         Graphics2D g2d = output.createGraphics();
@@ -221,7 +222,8 @@ public class FileService {
         return output;
     }
 
-    private BufferedImage resize(BufferedImage img, int limit) {
+    private BufferedImage resizeAvatar(BufferedImage img) {
+        int limit = avatarSize;
         int originalWidth = img.getWidth();
         int originalHeight = img.getHeight();
 

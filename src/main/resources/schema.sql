@@ -2,3 +2,5 @@
 --ALTER TABLE novels
     --ADD FULLTEXT INDEX ft_title_en (title),
     --ADD FULLTEXT INDEX ft_title (title) WITH PARSER ngram;
+--ALTER TABLE users
+    --MODIFY COLUMN role ENUM('USER', 'AUTHOR', 'ADMIN', 'SUPERADMIN');

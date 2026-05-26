@@ -1,7 +1,7 @@
 /*
 Get /{novelId} PathVariable: novelId -> NovelDTO
 Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable), type(String), tags(List<Long>) -> PageDTO<NovelDTO>
-Post / (authenticated) form-data: avatarImage(file), id(long), username(String), title(String), description(String) -> NovelDTO
+Post / (hasAuthority('AUTHOR', 'ADMIN', 'SUPERADMIN')) form-data: avatarImage(file), id(long), username(String), title(String), description(String) -> NovelDTO
 Delete /{novelId} (authenticated) PathVariable: novelId
 Put /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
 Delete /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
@@ -76,7 +76,7 @@ public class NovelController {
     }
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("hasAuthority('AUTHOR', 'ADMIN', 'SUPERADMIN')")
     public ResponseEntity<?> createOrUpdateNovel(@RequestParam(value = "coverImage", required = false) MultipartFile coverImage, @RequestParam(value = "id", required = false) Long id, @RequestParam(value = "title", required = false) String title, @RequestParam(value = "description", required = false) String description, @RequestParam(value = "type", required = false) String type, @RequestParam(value = "tags", required = false) List<Long> tags) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
