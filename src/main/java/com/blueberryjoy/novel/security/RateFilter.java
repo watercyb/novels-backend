@@ -12,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Objects;
 
 @Component
 public class RateFilter extends OncePerRequestFilter {
@@ -26,10 +25,10 @@ public class RateFilter extends OncePerRequestFilter {
             String ip = request.getRemoteAddr();
             Object obj = redisTemplate.opsForValue().get("Novels_SignUp_" + ip);
             if (obj == null) {
-                redisTemplate.opsForValue().set("Novels_SignUp_" + ip, String.valueOf(1), Duration.ofMinutes(24 * 60 * 60));
+                redisTemplate.opsForValue().set("Novels_SignUp_" + ip, String.valueOf(1), Duration.ofMinutes(3600));
             } else {
                 int val = Integer.parseInt(obj.toString());
-                if (val < 5) {
+                if (val < 10) {
                     redisTemplate.opsForValue().set("Novels_SignUp_" + ip, String.valueOf(val + 1));
                 } else {
                     response.setStatus(429);

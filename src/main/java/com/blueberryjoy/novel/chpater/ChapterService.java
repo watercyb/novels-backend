@@ -47,31 +47,15 @@ public class ChapterService {
         res.add(new ChapterDTO(chapter));
         if (published) {
             if (adjacent) {
-                ChapterDTO prv = chapterRepository
-                        .findPrevPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
-                ChapterDTO next = chapterRepository
-                        .findNextPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
+                ChapterDTO prv = chapterRepository.findPrevPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+                ChapterDTO next = chapterRepository.findNextPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
                 res.add(prv);
                 res.add(next);
             }
         } else {
             if (adjacent) {
-                ChapterDTO prv = chapterRepository
-                        .findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
-                ChapterDTO next = chapterRepository
-                        .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                        .stream()
-                        .findFirst()
-                        .orElse(null);
+                ChapterDTO prv = chapterRepository.findPrevChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+                ChapterDTO next = chapterRepository.findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
                 res.add(prv);
                 res.add(next);
             }
@@ -81,11 +65,14 @@ public class ChapterService {
 
     @Transactional
     public ChapterDTO createChapter(User user, long novelId, String title, String content) {
+        if (title == null || title.isEmpty() || content == null || content.isEmpty())
+            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
         content = sanitizeHtml(content);
         int wordCount = countWordsEnZh(content);
+
         int size = content.getBytes(StandardCharsets.UTF_8).length;
         Chapter chapter = new Chapter();
         chapter.setTitle(title);
@@ -105,37 +92,42 @@ public class ChapterService {
 
     @Transactional
     public ChapterDTO updateChapter(User user, long novelId, long chapterId, String title, String content) {
+        if ((title == null || title.isEmpty()) && (content == null || content.isEmpty()))
+            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null || !Objects.equals(chapter.getNovel().getId(), novel.getId()) || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        content = sanitizeHtml(content);
-        int wordCountOld = chapter.getWordCount();
-        int wordCountNew = countWordsEnZh(content);
-        int size = content.getBytes(StandardCharsets.UTF_8).length;
-        chapter.setTitle(title);
-        if (size > 30000) {
-            String url = fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, false);
-            chapter.setContent(null);
-            chapter.setContentUrl(url);
-        } else {
-            chapter.setContent(content);
-            if (chapter.getContentUrl() != null) {
-                fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, true);
-                chapter.setContentUrl(null);
+        if (title != null && !title.isEmpty())
+            chapter.setTitle(title);
+        if (content != null && !content.isEmpty()) {
+            content = sanitizeHtml(content);
+            int wordCountOld = chapter.getWordCount();
+            int wordCountNew = countWordsEnZh(content);
+            int size = content.getBytes(StandardCharsets.UTF_8).length;
+            if (size > 30000) {
+                String url = fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, false);
+                chapter.setContent(null);
+                chapter.setContentUrl(url);
+            } else {
+                chapter.setContent(content);
+                if (chapter.getContentUrl() != null) {
+                    fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), content, true);
+                    chapter.setContentUrl(null);
+                }
+            }
+            chapter.setWordCount(wordCountNew);
+            chapterRepository.save(chapter);
+            if (chapter.isPublished()) {
+                novel.updateWordCount(wordCountNew - wordCountOld);
+                user.updateWordCount(wordCountNew - wordCountOld);
+                novel.setLastUpdatedAt(chapter.getUpdatedAt());
+                novel.setLastChapterTitle(chapter.getTitle());
             }
         }
-        chapter.setWordCount(wordCountNew);
-        chapterRepository.save(chapter);
-        if (chapter.isPublished()) {
-            novel.updateWordCount(wordCountNew - wordCountOld);
-            user.updateWordCount(wordCountNew - wordCountOld);
-            novel.setLastUpdatedAt(chapter.getUpdatedAt());
-            novel.setLastChapterTitle(chapter.getTitle());
-        }
-        novel.setLastChapterTitle(title);
+        novel.setLastChapterTitle(chapter.getTitle());
         novelRepository.save(novel);
         userRepository.save(user);
         return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.isPublished());
@@ -160,17 +152,12 @@ public class ChapterService {
     //Move target after chapter.
     @Transactional
     public ChapterDTO move(User user, long chapterId, long targetId) {
-        if (chapterId == targetId)
-            throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (chapterId == targetId) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         Chapter target = chapterRepository.findById(targetId).orElse(null);
         if (chapter == null || target == null || target.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        ChapterDTO next = chapterRepository
-                .findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1))
-                .stream()
-                .findFirst()
-                .orElse(null);
+        ChapterDTO next = chapterRepository.findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
         Novel novelChapter = chapter.getNovel();
         Novel novelTarget = target.getNovel();
         if (!novelChapter.getAuthor().getId().equals(user.getId()) || !novelTarget.getAuthor().getId().equals(user.getId()))
@@ -188,9 +175,7 @@ public class ChapterService {
                 return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
             BigDecimal orderIndexChapter = chapter.getOrderIndex();
             BigDecimal orderIndexNext = next.getOrderIndex();
-            BigDecimal newIndex = orderIndexChapter
-                    .add(orderIndexNext)
-                    .divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP);
+            BigDecimal newIndex = orderIndexChapter.add(orderIndexNext).divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP);
             if (newIndex.compareTo(orderIndexChapter) == 0 || newIndex.compareTo(orderIndexNext) == 0) {
                 chapterRepository.shiftOrderIndexes(next.getId(), orderIndexNext);
                 newIndex = orderIndexNext;
@@ -238,14 +223,11 @@ public class ChapterService {
         int count = 0;
         int start = iterator.first();
 
-        for (int end = iterator.next();
-             end != BreakIterator.DONE;
-             start = end, end = iterator.next()) {
+        for (int end = iterator.next(); end != BreakIterator.DONE; start = end, end = iterator.next()) {
 
             String word = text.substring(start, end);
 
-            if (word.codePoints().anyMatch(Character::isLetterOrDigit))
-                count++;
+            if (word.codePoints().anyMatch(Character::isLetterOrDigit)) count++;
         }
 
         return count;
@@ -268,8 +250,7 @@ public class ChapterService {
                 int j = i;
                 while (j < text.length()) {
                     int next = text.codePointAt(j);
-                    if (Character.UnicodeScript.of(next) == Character.UnicodeScript.HAN)
-                        break;
+                    if (Character.UnicodeScript.of(next) == Character.UnicodeScript.HAN) break;
                     j += Character.charCount(next);
                 }
 
@@ -279,15 +260,13 @@ public class ChapterService {
                 i = j;
             }
         }
-
         return count;
     }
 
     @Transactional
     public void publishChapter(User user, long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        if (chapter == null)
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+        if (chapter == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
         Novel novel = chapter.getNovel();
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);

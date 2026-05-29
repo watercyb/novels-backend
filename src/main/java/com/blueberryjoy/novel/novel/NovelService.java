@@ -82,14 +82,14 @@ public class NovelService {
         chapter.setTitle("");
         chapter.setNovel(novel);
         chapter.setOrderIndex(BigDecimal.ZERO);
+        chapter.setPublished(true);
+        chapter = chapterRepository.save(chapter);
         if (tags != null && !tags.isEmpty()) {
             Set<Long> tagIdSet = new HashSet<>(tags);
             List<Tag> newTags = tagRepository.findAllById(tagIdSet);
             tagRepository.incrementTagUsage(tagIdSet);
             novel.setTags(new HashSet<>(newTags));
         }
-        chapter = chapterRepository.save(chapter);
-
         novel.setLastUpdatedAt(chapter.getUpdatedAt());
         novel = novelRepository.save(novel);
         user.updateNovelCount(1);

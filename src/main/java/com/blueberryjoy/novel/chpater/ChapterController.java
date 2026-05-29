@@ -1,6 +1,6 @@
 /*
-Get /{chapterId} PathVariable: chapterId -> List<ChapterDTO> (chapter, prv, next)
-Get /{chapterId}/edit (authenticated) PathVariable: chapterId -> List<ChapterDTO> (chapter, prv, next)
+Get /{chapterId} PathVariable: chapterId, RequestParam: adjacent(boolean) -> List<ChapterDTO> (chapter, prv, next)
+Get /{chapterId}/edit (authenticated) PathVariable: chapterId, RequestParam: adjacent(boolean) -> List<ChapterDTO> (chapter, prv, next)
 Get / RequestParam: novelId(long),  pageable(Pageable) -> PageDTO<ChapterDTO>
 Get /edit (authenticated) RequestParam: novelId(long),  pageable(Pageable) -> PageDTO<ChapterDTO>
 Post / (authenticated) JSON: {novelId, chapterId, title, content} -> List<ChapterDTO>
@@ -113,7 +113,7 @@ public class ChapterController {
             Number chapterId = (Number) body.get("chapterId");
             String title = (String) body.get("title");
             String content = (String) body.get("content");
-            if (novelId == null || title == null || title.isEmpty() || content == null || content.isEmpty())
+            if (novelId == null)
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
             if (chapterId == null) {
                 ChapterDTO chapter = chapterService.createChapter(user, novelId.longValue(), title, content);
