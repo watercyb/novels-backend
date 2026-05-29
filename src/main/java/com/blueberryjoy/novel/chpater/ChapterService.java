@@ -44,7 +44,11 @@ public class ChapterService {
         if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0 || (!chapter.isPublished() && published) || (!chapter.isPublished() && !Objects.equals(chapter.getNovel().getAuthor().getId(), user.getId())))
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
         List<ChapterDTO> res = new ArrayList<>();
-        res.add(new ChapterDTO(chapter));
+        ChapterDTO chapterDTO = new ChapterDTO(chapter, true);
+        if (chapter.getContent() == null && chapter.getContentUrl() != null) {
+            chapterDTO.setContent(fileService.getChapter(chapter.getContentUrl()));
+        }
+        res.add(chapterDTO);
         if (published) {
             if (adjacent) {
                 ChapterDTO prv = chapterRepository.findPrevPublishedChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
@@ -195,7 +199,7 @@ public class ChapterService {
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to delete this chapter.", HttpStatus.BAD_REQUEST);
         if (chapter.getContent() == null || chapter.getContent().isEmpty())
-            fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "", true);
+            fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "removal", true);
         int wordCount = chapter.getWordCount();
         commentRepository.deleteRepliesByChapter(chapterId);
         commentRepository.deleteCommentsByChapter(chapterId);

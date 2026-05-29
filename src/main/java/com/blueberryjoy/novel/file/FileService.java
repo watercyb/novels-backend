@@ -4,6 +4,7 @@ import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.novel.Novel;
 import org.apache.http.ParseException;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
@@ -41,7 +42,7 @@ public class FileService {
                         .addTextBody("token", token)
                         .addTextBody("user_id", String.valueOf(userId))
                         .addTextBody("novel_id", String.valueOf(novel.getId()))
-                        .addTextBody("content", content)
+                        .addTextBody("content", content, ContentType.create("text/plain", "UTF-8"))
                         .addTextBody("remove", String.valueOf(isRemove));
 
                 String oldFilename = getFilename(contentUrl);
@@ -57,9 +58,30 @@ public class FileService {
                     ObjectMapper mapper = new ObjectMapper();
                     UploadResponse res = mapper.readValue(json, UploadResponse.class);
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
-                    return repoUrl + res.filename;
+                    return repoApiUrl + "files/" + res.filename;
                 } catch (ParseException e) {
                     throw new ApiException("Cannot update file", HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            }
+        } catch (Exception e) {
+            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    public String getChapter(String contentUrl) {
+        try {
+            try (CloseableHttpClient client = HttpClients.createDefault()) {
+                if (contentUrl != null && contentUrl.startsWith(repoApiUrl)) {
+                    HttpGet get = new HttpGet(contentUrl);
+                    try (CloseableHttpResponse response = client.execute(get)) {
+                        String text = EntityUtils.toString(response.getEntity(), "UTF-8");
+                        System.out.println(text);
+                        return text;
+                    } catch (ParseException e) {
+                        throw new ApiException("Cannot get file", HttpStatus.INTERNAL_SERVER_ERROR);
+                    }
+                } else {
+                    throw new ApiException("Cannot get file", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (Exception e) {
