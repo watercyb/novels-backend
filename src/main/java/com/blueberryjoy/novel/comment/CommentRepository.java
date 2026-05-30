@@ -7,12 +7,14 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
+
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("""
             SELECT c
             FROM Comment c
             JOIN FETCH c.user
-            WHERE c.chapter = :chapterId
+            WHERE c.chapter.id = :chapterId
             ORDER BY c.createdAt DESC
             """)
     Page<Comment> findCommentsByChapter(@Param("chapterId") Long chapterId, Pageable pageable);
@@ -21,10 +23,10 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
             SELECT c
             FROM Comment c
             JOIN FETCH c.user
-            WHERE c.parent = :parentId
+            WHERE c.parent.id = :parentId
             ORDER BY c.createdAt DESC
             """)
-    Page<Comment> findCommentsByParentId(@Param("commentId") Long parentId, Pageable pageable);
+    List<Comment> findCommentsByParentId(@Param("parentId") Long parentId);
 
     @Modifying
     @Query("DELETE FROM Comment c WHERE c.id = :commendId")

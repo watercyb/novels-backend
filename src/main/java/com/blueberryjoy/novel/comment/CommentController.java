@@ -7,7 +7,6 @@ Delete /{commentId} (authenticated) PathVariable: commentId
 
 package com.blueberryjoy.novel.comment;
 
-import com.blueberryjoy.novel.chpater.ChapterController;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
@@ -22,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -31,18 +31,18 @@ public class CommentController {
     private CommentService commentService;
 
     @GetMapping
-    public ResponseEntity<?> getComments(@RequestParam(required = false) Long chapterId, @RequestParam(required = false) Long commentId, @RequestParam() Pageable pageable) {
+    public ResponseEntity<?> getComments(@RequestParam(required = false) Long chapterId, @RequestParam(required = false) Long commentId, Pageable pageable) {
         try {
             if (chapterId == null && commentId == null)
                 throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
-            Page<CommentDTO> comments;
             if (commentId == null) {
-                comments = commentService.getCommentsByChapter(chapterId, pageable);
+                Page<CommentDTO> comments = commentService.getCommentsByChapter(chapterId, pageable);
+                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "", null, null, new PageDTO<>(comments)));
             } else {
-                comments = commentService.getCommentsByComment(commentId, pageable);
+                List<CommentDTO> comments = commentService.getCommentsByComment(commentId);
+                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "", null, comments, null));
             }
-            return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "", null, new PageDTO<>(comments)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -68,10 +68,12 @@ public class CommentController {
                 throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
             if (commentId == null) {
                 CommentDTO comment = commentService.createComment(user, chapterId, parentId, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment created successfully", comment, null));
+                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment created successfully", comment, null, null));
             } else {
-                CommentDTO comment = commentService.updateComment(user, commentId, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment updated successfully", comment, null));
+                //TODO update comment is currently not allowed.
+                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                //CommentDTO comment = commentService.updateComment(user, commentId, content);
+                //return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment updated successfully", comment, null));
             }
         } catch (ApiException e) {
             throw e;
@@ -90,7 +92,7 @@ public class CommentController {
                 throw new ApiException("Unable to delete comment right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             commentService.deleteComment(user, commentId);
-            return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment deleted successfully", null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment deleted successfully", null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -99,6 +101,7 @@ public class CommentController {
         }
     }
 
-    record CommentResponse(boolean success, String message, CommentDTO comment, PageDTO<CommentDTO> page) {
+    record CommentResponse(boolean success, String message, CommentDTO comment, List<CommentDTO> list,
+                           PageDTO<CommentDTO> page) {
     }
 }

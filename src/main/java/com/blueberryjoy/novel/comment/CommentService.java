@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -65,9 +66,9 @@ public class CommentService {
     }
 
     @Transactional
-    public Page<CommentDTO> getCommentsByComment(long commentId, Pageable pageable) {
-        Page<Comment> page = commentRepository.findCommentsByParentId(commentId, pageable);
-        return page.map(CommentDTO::new);
+    public List<CommentDTO> getCommentsByComment(long commentId) {
+        List<Comment> list = commentRepository.findCommentsByParentId(commentId);
+        return list.stream().map(CommentDTO::new).toList();
     }
 
 
