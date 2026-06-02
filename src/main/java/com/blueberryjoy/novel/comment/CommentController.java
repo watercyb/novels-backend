@@ -1,6 +1,6 @@
 /*
 Get / RequestParam: chapterId(long), parentId(long), commentId(long), content(String) -> PageDTO<CommentDTO>
-Post / (authenticated) JSON: {novelId, chapterId, title, content} -> ChapterDTO
+Post / (authenticated) JSON: {chapterId, parentId, commentId, content} -> ChapterDTO
 Delete /{commentId} (authenticated) PathVariable: commentId
 */
 
@@ -62,7 +62,7 @@ public class CommentController {
             Number parentId = (Number) body.get("parentId");
             Number commentId = (Number) body.get("commentId");
             String content = (String) body.get("content");
-            if (content == null)
+            if (content == null || content.replace(" ", "").isEmpty())
                 throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
             if ((chapterId == null && parentId == null && commentId == null))
                 throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);

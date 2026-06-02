@@ -19,7 +19,6 @@ import com.blueberryjoy.novel.security.JwtUtils;
 import jakarta.servlet.http.Cookie;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -65,8 +64,13 @@ public class UserController {
             User user = userService.createUser(username, email, password, "USER");
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
+            ResponseCookie userCookie = jwtUtils.getUserCookie();
             mailService.sendWelcomeMail(email, username);
-            return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -86,7 +90,12 @@ public class UserController {
                 throw new ApiException("Incorrect email or password. Please try again.", HttpStatus.UNAUTHORIZED);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
+            ResponseCookie userCookie = jwtUtils.getUserCookie();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -113,7 +122,12 @@ public class UserController {
             if (user == null) throw new ApiException("Please login.", HttpStatus.UNAUTHORIZED);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
+            ResponseCookie userCookie = jwtUtils.getUserCookie();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -127,13 +141,18 @@ public class UserController {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             ResponseCookie accessCookie = jwtUtils.getEmptyAccessCookie();
             ResponseCookie refreshCookie;
+            ResponseCookie userCookie = jwtUtils.getEmptyUserCookie();
             if (auth != null && !Objects.equals(auth.getPrincipal(), "anonymousUser")) {
                 User user = (User) auth.getPrincipal();
                 refreshCookie = jwtUtils.getEmptyRefreshCookie(user);
             } else {
                 refreshCookie = jwtUtils.getEmptyRefreshCookie(null);
             }
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).body(new UserResponse(true, null, null));
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -193,7 +212,12 @@ public class UserController {
             userService.updatePassword(user, newPassword);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Uploaded successfully", null));
+            ResponseCookie userCookie = jwtUtils.getUserCookie();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, "Uploaded successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -237,7 +261,12 @@ public class UserController {
             resetPasswordCodeStore.remove(user.getId());
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).body(new UserResponse(true, "Password reset successfully", null));
+            ResponseCookie userCookie = jwtUtils.getUserCookie();
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
+                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
+                    .body(new UserResponse(true, "Password reset successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

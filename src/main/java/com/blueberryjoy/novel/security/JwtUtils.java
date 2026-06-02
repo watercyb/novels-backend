@@ -124,7 +124,7 @@ public class JwtUtils {
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))
                 .path("/api/")
-                .maxAge(7 * 24 * 60 * 60)
+                .maxAge(0)
                 .sameSite("Strict")
                 .build();
     }
@@ -136,11 +136,26 @@ public class JwtUtils {
                 .httpOnly(true)
                 .secure(!MODE.equals("DEVELOPMENT"))
                 .path("/api/auth/refresh")
-                .maxAge(14 * 24 * 60 * 60)
+                .maxAge(0)
                 .sameSite("Strict")
                 .build();
     }
 
+    public ResponseCookie getUserCookie() {
+        return ResponseCookie.from("user", "login")
+                .secure(!MODE.equals("DEVELOPMENT"))
+                .path("/")
+                .maxAge(7 * 24 * 60 * 60)
+                .sameSite("Strict")  // CSRF protection
+                .build();
+    }
+
+    public ResponseCookie getEmptyUserCookie() {
+        return ResponseCookie.from("user", "login")
+                .path("/")
+                .maxAge(0)
+                .build();
+    }
 
     public String getLastFourDigits(String str) {
         return str.substring(str.length() - 4);

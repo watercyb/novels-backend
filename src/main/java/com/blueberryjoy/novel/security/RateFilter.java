@@ -23,13 +23,19 @@ public class RateFilter extends OncePerRequestFilter {
         String path = request.getRequestURI().substring(request.getContextPath().length());
         if ("POST".equalsIgnoreCase(request.getMethod()) && "/api/auth/signup".equals(path)) {
             String ip = request.getRemoteAddr();
-            Object obj = redisTemplate.opsForValue().get("Novels_SignUp_" + ip);
+            String key = "Novels_SignUp_" + ip;
+            Object obj = redisTemplate.opsForValue().get(key);
             if (obj == null) {
-                redisTemplate.opsForValue().set("Novels_SignUp_" + ip, String.valueOf(1), Duration.ofMinutes(3600));
+                redisTemplate.opsForValue().set(key, String.valueOf(1), Duration.ofMinutes(600));
             } else {
                 int val = Integer.parseInt(obj.toString());
                 if (val < 10) {
-                    redisTemplate.opsForValue().set("Novels_SignUp_" + ip, String.valueOf(val + 1));
+                    Long ttl = redisTemplate.getExpire(key);
+                    if (ttl != null && ttl > 0) {
+                        redisTemplate.opsForValue().set(key, String.valueOf(val + 1), Duration.ofSeconds(ttl));
+                    } else {
+                        redisTemplate.opsForValue().set(key, String.valueOf(val + 1), Duration.ofMinutes(600));
+                    }
                 } else {
                     response.setStatus(429);
                     response.getWriter().write("{\"success\":false,\"message\":\"Too many requests\"}");
