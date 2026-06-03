@@ -180,16 +180,16 @@ public class UserController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update password right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_UPDATE_PASSWORD", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             String oldPassword = (String) body.get("oldPassword");
             String newPassword = (String) body.get("newPassword");
             if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty())
                 throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             if (!passwordEncoder.matches(oldPassword, user.getPasswordHash()))
-                throw new ApiException("Unable to update password right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_UPDATE_PASSWORD", HttpStatus.BAD_REQUEST);
             if (newPassword.equals(oldPassword))
-                throw new ApiException("New password must be different from your current password.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("SAME_PASSWORD", HttpStatus.BAD_REQUEST);
             userService.updatePassword(user, newPassword);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
@@ -254,6 +254,19 @@ public class UserController {
                 throw new ApiException("Unable to delete chapter right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             return ResponseEntity.ok().body(new UserResponse(true, null, new UserDTO(user)));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @GetMapping("/{authorId}")
+    public ResponseEntity<?> getAuthor(@PathVariable Long authorId) {
+        try {
+            if (authorId == null) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
+            UserDTO user = userService.getAuthor(authorId);
+            return ResponseEntity.ok().body(new UserResponse(true, null, user));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

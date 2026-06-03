@@ -1,11 +1,15 @@
 package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.novel.Novel;
+import com.blueberryjoy.novel.novel.NovelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 public class UserService {
@@ -14,6 +18,8 @@ public class UserService {
     private UserRepository userRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private NovelRepository novelRepository;
 
 
     public User findUserByEmail(String email) {
@@ -49,5 +55,13 @@ public class UserService {
     @Transactional
     public void updateUser(User user) {
         userRepository.save(user);
+    }
+
+    public UserDTO getAuthor(Long authorId) {
+        User user = userRepository.findById(authorId).orElse(null);
+        if (user == null)
+            throw new ApiException("UNABLE_FOUND_AUTHOR", HttpStatus.BAD_REQUEST);
+        List<Novel> list = novelRepository.queryNovelsByAuthor(authorId);
+        return new UserDTO(user, list);
     }
 }

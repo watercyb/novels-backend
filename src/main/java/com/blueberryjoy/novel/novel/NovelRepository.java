@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface NovelRepository extends JpaRepository<Novel, Long> {
     @Query("SELECT n FROM Novel n LEFT JOIN FETCH n.tags WHERE n.author.id = :userId")
-    List<Novel> findNovels(@Param("userId") Long userId);
+    List<Novel> queryNovelsByAuthor(@Param("userId") Long userId);
 
     @Query(value = """
                 SELECT DISTINCT n.*,
