@@ -33,6 +33,8 @@ public class Mailtrap {
             MailResponse mailResponse = mapper.readValue(json, MailResponse.class);
             if (!mailResponse.success)
                 throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }

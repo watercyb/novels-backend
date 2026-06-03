@@ -1,5 +1,6 @@
 package com.blueberryjoy.novel.security;
 
+import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserService;
 import io.jsonwebtoken.Claims;
@@ -63,6 +64,8 @@ public class JwtUtils {
             if (user == null || !getLastFourDigits(user.getPasswordHash()).equals(verification))
                 return null;
             return user;
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             return null;
         }
@@ -90,6 +93,8 @@ public class JwtUtils {
             String savedToken = Objects.requireNonNull(redisTemplate.opsForValue().get("Novels_RefreshToken_" + userId)).toString();
             if (!Objects.equals(savedToken, token)) return null;
             return userService.findUserById(userId);
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             return null;
         }

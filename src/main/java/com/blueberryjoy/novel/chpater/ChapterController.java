@@ -183,7 +183,6 @@ public class ChapterController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.err.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

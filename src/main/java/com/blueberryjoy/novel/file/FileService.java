@@ -63,6 +63,8 @@ public class FileService {
                     throw new ApiException("UNABLE_UPDATE_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -84,6 +86,8 @@ public class FileService {
                     throw new ApiException("UNABLE_GET_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -93,6 +97,7 @@ public class FileService {
         try {
             if (file == null || file.isEmpty())
                 throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "avatar.php");
 
@@ -117,6 +122,8 @@ public class FileService {
                     throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -152,6 +159,8 @@ public class FileService {
                     throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -184,6 +193,8 @@ public class FileService {
                     throw new ApiException("Cannot delete image", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -213,6 +224,8 @@ public class FileService {
             ByteArrayOutputStream arr = new ByteArrayOutputStream();
             ImageIO.write(rgbImage, "jpeg", arr);
             return arr.toByteArray();
+        } catch (ApiException e) {
+            throw e;
         } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }

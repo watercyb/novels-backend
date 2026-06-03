@@ -66,11 +66,7 @@ public class UserController {
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
             mailService.sendWelcomeMail(email, username);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, null, new UserDTO(user)));
+            return ResponseEntity.status(HttpStatus.CREATED).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -91,15 +87,10 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, null, new UserDTO(user)));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -123,11 +114,7 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, null, new UserDTO(user)));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -148,15 +135,10 @@ public class UserController {
             } else {
                 refreshCookie = jwtUtils.getEmptyRefreshCookie(null);
             }
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, null, null));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -176,6 +158,7 @@ public class UserController {
                     throw new ApiException("Unsupported file format", HttpStatus.BAD_REQUEST);
                 if (avatarImage.getSize() > 5 * 1024 * 1024)
                     throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+
                 String fileName = repository.uploadAvatar(avatarImage, user.getId(), user.getAvatarUrl());
                 if (fileName == null || fileName.isEmpty())
                     throw new ApiException("Unable to update user avatar right now.", HttpStatus.BAD_REQUEST);
@@ -184,11 +167,9 @@ public class UserController {
             if (username != null && !username.isEmpty()) user.setUsername(username);
             userService.updateUser(user);
             return ResponseEntity.ok().body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
-        } catch (
-                ApiException e) {
+        } catch (ApiException e) {
             throw e;
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -213,15 +194,10 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, "Uploaded successfully", null));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, "Uploaded successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -230,8 +206,7 @@ public class UserController {
     public ResponseEntity<?> sendResetCode(@RequestBody Map<String, Object> body) {
         try {
             String email = (String) body.get("email");
-            if (email == null || email.isEmpty())
-                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
+            if (email == null || email.isEmpty()) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             User user = userService.findUserByEmail(email);
             if (user != null) {
                 String code = UUID.randomUUID().toString();
@@ -262,15 +237,10 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
-            return ResponseEntity.ok()
-                    .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, refreshCookie.toString())
-                    .header(HttpHeaders.SET_COOKIE, userCookie.toString())
-                    .body(new UserResponse(true, "Password reset successfully", null));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, "Password reset successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -287,7 +257,6 @@ public class UserController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            System.out.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
