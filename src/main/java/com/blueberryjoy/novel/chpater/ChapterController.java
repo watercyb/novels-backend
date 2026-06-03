@@ -38,14 +38,14 @@ public class ChapterController {
     @GetMapping("/{chapterId}")
     public ResponseEntity<?> getPublishedChapterById(@PathVariable Long chapterId, @RequestParam(defaultValue = "true") boolean adjacent) {
         try {
-            if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             List<ChapterDTO> list = chapterService.getChapter(null, chapterId, adjacent, true);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", list, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -53,7 +53,7 @@ public class ChapterController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getChapterById(@PathVariable Long chapterId, @RequestParam(defaultValue = "true") boolean adjacent) {
         try {
-            if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to get chapter right now.", HttpStatus.BAD_REQUEST);
@@ -63,21 +63,21 @@ public class ChapterController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     @GetMapping
     public ResponseEntity<?> getPublishedChaptersByNovelId(@RequestParam(required = false) Long novelId, Pageable pageable) {
         try {
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             Page<ChapterDTO> chapters = chapterService.getChapters(null, novelId, pageable, true);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", null, new PageDTO<>(chapters)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -86,7 +86,7 @@ public class ChapterController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getChaptersByNovelId(@RequestParam(required = false) Long novelId, Pageable pageable) {
         try {
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to get chapters right now.", HttpStatus.BAD_REQUEST);
@@ -97,7 +97,7 @@ public class ChapterController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -114,7 +114,7 @@ public class ChapterController {
             String title = (String) body.get("title");
             String content = (String) body.get("content");
             if (novelId == null)
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             if (chapterId == null) {
                 ChapterDTO chapter = chapterService.createChapter(user, novelId.longValue(), title, content);
                 return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter created successfully", List.of(chapter), null));
@@ -125,7 +125,7 @@ public class ChapterController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -144,7 +144,7 @@ public class ChapterController {
             throw e;
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -159,13 +159,13 @@ public class ChapterController {
             Number chapterId = (Number) body.get("chapterId");
             Number targetId = (Number) body.get("targetId");
             if (chapterId == null || targetId == null)
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             ChapterDTO chapter = chapterService.move(user, chapterId.longValue(), targetId.longValue());
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", List.of(chapter), null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -184,7 +184,7 @@ public class ChapterController {
             throw e;
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

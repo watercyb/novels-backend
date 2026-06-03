@@ -42,9 +42,9 @@ public class AdminService {
     @Transactional
     public void deleteById(User adminUser, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
-        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
-            throw new ApiException("You do not have permission to delete this novel.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_DELETE_NOVEL", HttpStatus.BAD_REQUEST);
         User user = novel.getAuthor();
 
         List<Long> tagIds = novel.getTags().stream().map(Tag::getId).toList();
@@ -71,13 +71,13 @@ public class AdminService {
     @Transactional
     public void updateUserRole(User adminUser, long userId, User.Role newRole) {
         User user = userRepository.findById(userId).orElse(null);
-        if (user == null) throw new ApiException("User not found", HttpStatus.BAD_REQUEST);
+        if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
         if (user.getRole() == User.Role.SUPERADMIN || newRole == User.Role.SUPERADMIN)
-            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
-            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
         if ((user.getRole() == User.Role.ADMIN || newRole == User.Role.ADMIN) && adminUser.getRole() != User.Role.SUPERADMIN)
-            throw new ApiException("You do not have permission to update the role of this user.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
         user.setRole(newRole);
         userRepository.save(user);
     }
@@ -91,17 +91,17 @@ public class AdminService {
             newTag.setNameCN(nameCN);
             tagRepository.save(newTag);
         } else {
-            throw new ApiException("Tag already exists", HttpStatus.BAD_REQUEST);
+            throw new ApiException("TAG_EXISTS", HttpStatus.BAD_REQUEST);
         }
     }
 
     @Transactional
     public void update(long id, String name, String nameCN, Integer count) {
         if (tagRepository.findByName(name).orElse(null) != null || tagRepository.findByNameCN(nameCN).orElse(null) != null)
-            throw new ApiException("Tag name exists", HttpStatus.BAD_REQUEST);
+            throw new ApiException("TAG_EXISTS", HttpStatus.BAD_REQUEST);
         Tag tag = tagRepository.findById(id).orElse(null);
         if (tag == null)
-            throw new ApiException("Tag not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
         if (name == null) name = tag.getName();
         if (nameCN == null) nameCN = tag.getNameCN();
         if (count == null) count = tag.getTagUsage();

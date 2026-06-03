@@ -34,17 +34,17 @@ public class FavoriteController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> addFavorite(@PathVariable Long novelId) {
         try {
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to add to favorites right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_ADD_FAVORITES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.addFavorite(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Favorite successfully", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -53,17 +53,17 @@ public class FavoriteController {
     public ResponseEntity<?> deleteFavorite(@PathVariable Long favoriteId) {
         try {
             if (favoriteId == null)
-                throw new ApiException("Unable to remove from favorites right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_REMOVE_FAVORITES", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to remove from favorites right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_REMOVE_FAVORITES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             favoriteService.deleteFavorite(user, favoriteId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Removed from favorites successfully", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -73,14 +73,14 @@ public class FavoriteController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get list of favorites right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_GET_FAVORITES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Page<NovelDTO> novels = favoriteService.getNovels(user, pageable);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", null, new PageDTO<>(novels)));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -90,14 +90,14 @@ public class FavoriteController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get list of favorites right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_GET_FAVORITES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             List<Long> list = favoriteService.getIds(user);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "", list, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

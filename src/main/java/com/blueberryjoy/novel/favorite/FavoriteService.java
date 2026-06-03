@@ -25,9 +25,9 @@ public class FavoriteService {
     @Transactional
     public void addFavorite(User user, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
-        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (favoriteRepository.existsByUserIdAndNovelId(user.getId(), novelId))
-            throw new ApiException("Already favorite", HttpStatus.BAD_REQUEST);
+            throw new ApiException("ALREADY_FAVORITE", HttpStatus.BAD_REQUEST);
         Favorite favorite = new Favorite();
         favorite.setUser(user);
         favorite.setNovel(novel);
@@ -38,7 +38,7 @@ public class FavoriteService {
     public void deleteFavorite(User user, long favoriteId) {
         Favorite favorite = favoriteRepository.findById(favoriteId).orElse(null);
         if (favorite == null || !Objects.equals(favorite.getUser().getId(), user.getId()))
-            throw new ApiException("Unable to remove from favorites right now.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_REMOVE_FAVORITE", HttpStatus.BAD_REQUEST);
         favoriteRepository.delete(favorite);
     }
 

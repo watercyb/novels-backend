@@ -37,13 +37,13 @@ public class NovelController {
     @GetMapping("/{novelId}")
     public ResponseEntity<?> getNovelById(@PathVariable Long novelId) {
         try {
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             NovelDTO novel = novelService.getNovel(novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", novel, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -71,7 +71,7 @@ public class NovelController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -81,13 +81,13 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to create novel right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_CREATE_NOVEL", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (id != null) {
                 NovelDTO novel = novelService.updateNovel(coverImage, user, id, title, description, type, tags);
                 return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Updated successfully", novel, null));
             } else {
-                if (title == null) throw new ApiException("Title cannot be empty.", HttpStatus.BAD_REQUEST);
+                if (title == null) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
                 if (description == null) description = "";
                 NovelDTO novel = novelService.createNovel(coverImage, user, title, description, type, tags);
                 return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null));
@@ -95,7 +95,7 @@ public class NovelController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -105,15 +105,15 @@ public class NovelController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete novel right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_DELETE_NOVEL", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             novelService.deleteById(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Novel deleted", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -126,13 +126,13 @@ public class NovelController {
                 throw new ApiException("Unable to add tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (novelId == null || tagId == null)
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             novelService.addTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -145,13 +145,13 @@ public class NovelController {
                 throw new ApiException("Unable to remove tag right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             if (novelId == null || tagId == null)
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             novelService.removeTag(user, novelId, tagId);
             return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -37,17 +37,17 @@ public class LikeController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> like(@PathVariable Long novelId) {
         try {
-            if (novelId == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to like the novel right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_LIKE_NOVEL", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             likeService.like(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "Liked successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -56,17 +56,17 @@ public class LikeController {
     public ResponseEntity<?> unlike(@PathVariable Long novelId) {
         try {
             if (novelId == null)
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to unlike right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_UNLIKE_NOVEL", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             likeService.unlike(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "Unliked successfully", null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -76,14 +76,14 @@ public class LikeController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to load likes right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_LOAD_LIKES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             List<Long> list = likeService.getIds(user);
             return ResponseEntity.status(HttpStatus.OK).body(new LikeResponse(true, "", list));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

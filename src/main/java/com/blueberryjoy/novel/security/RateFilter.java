@@ -38,7 +38,7 @@ public class RateFilter extends OncePerRequestFilter {
                     }
                 } else {
                     response.setStatus(429);
-                    response.getWriter().write("{\"success\":false,\"message\":\"Too many requests\"}");
+                    response.getWriter().write("{\"success\":false,\"message\":\"TOO_MANY_REQUESTES\"}");
                     return;
                 }
             }

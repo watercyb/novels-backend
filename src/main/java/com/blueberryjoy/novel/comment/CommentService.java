@@ -30,7 +30,7 @@ public class CommentService {
             long parentId = parentIdNum.longValue();
             Comment parent = commentRepository.findById(parentId).orElse(null);
             if (parent == null)
-                throw new ApiException("Comment not found", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
             comment.setParent(parent);
             parent.updateCommentCount(1);
             commentRepository.save(parent);
@@ -38,7 +38,7 @@ public class CommentService {
             long chapterId = chapterIdNum.longValue();
             Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
             if (chapter == null)
-                throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             comment.setChapter(chapter);
         }
         commentRepository.save(comment);
@@ -50,7 +50,7 @@ public class CommentService {
         long commentId = commentIdNum.longValue();
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if (comment == null || !Objects.equals(comment.getUser().getId(), user.getId()))
-            throw new ApiException("Comment not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
         comment.setContent(content);
         commentRepository.save(comment);
         return new CommentDTO(comment);

@@ -19,7 +19,7 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("""
-                    {"success": false, "message": "Admin Access Required"}
+                    {"success": false, "message": "NEED_ADMIN"}
                 """);
     }
 }

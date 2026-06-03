@@ -17,25 +17,25 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(org.springframework.web.multipart.MultipartException.class)
     public ResponseEntity<ErrorResponse> handle(org.springframework.web.multipart.MultipartException ex) {
-        ErrorResponse response = new ErrorResponse(false, "This action isn’t allowed.");
+        ErrorResponse response = new ErrorResponse(false, "ACTION_NOT_ALLOWED");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(org.springframework.web.multipart.support.MissingServletRequestPartException.class)
     public ResponseEntity<ErrorResponse> handle(org.springframework.web.multipart.support.MissingServletRequestPartException ex) {
-        ErrorResponse response = new ErrorResponse(false, "This action isn’t allowed.");
+        ErrorResponse response = new ErrorResponse(false, "ACTION_NOT_ALLOWED");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(org.springframework.web.bind.MissingServletRequestParameterException.class)
     public ResponseEntity<ErrorResponse> handle(org.springframework.web.bind.MissingServletRequestParameterException ex) {
-        ErrorResponse response = new ErrorResponse(false, "This action isn’t allowed.");
+        ErrorResponse response = new ErrorResponse(false, "ACTION_NOT_ALLOWED");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 
     @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorResponse> handle(org.springframework.http.converter.HttpMessageNotReadableException ex) {
-        ErrorResponse response = new ErrorResponse(false, "This action isn’t allowed.");
+        ErrorResponse response = new ErrorResponse(false, "ACTION_NOT_ALLOWED");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
     }
 

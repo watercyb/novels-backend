@@ -42,7 +42,7 @@ public class ChapterService {
     public List<ChapterDTO> getChapter(User user, Long id, boolean adjacent, boolean published) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
         if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0 || (!chapter.isPublished() && published) || (!chapter.isPublished() && !Objects.equals(chapter.getNovel().getAuthor().getId(), user.getId())))
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         List<ChapterDTO> res = new ArrayList<>();
         ChapterDTO chapterDTO = new ChapterDTO(chapter, true);
         if (chapter.getContent() == null && chapter.getContentUrl() != null) {
@@ -70,10 +70,10 @@ public class ChapterService {
     @Transactional
     public ChapterDTO createChapter(User user, long novelId, String title, String content) {
         if (title == null || title.isEmpty() || content == null || content.isEmpty())
-            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         content = sanitizeHtml(content);
         int wordCount = countWordsEnZh(content);
 
@@ -97,10 +97,10 @@ public class ChapterService {
     @Transactional
     public ChapterDTO updateChapter(User user, long novelId, long chapterId, String title, String content) {
         if ((title == null || title.isEmpty()) && (content == null || content.isEmpty()))
-            throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null || !Objects.equals(chapter.getNovel().getId(), novel.getId()) || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
@@ -143,7 +143,7 @@ public class ChapterService {
         } else {
             Novel novel = novelRepository.findById(novelId).orElse(null);
             if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
-                throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             return chapterRepository.findChapterPreview(novelId, pageable);
         }
     }
@@ -156,7 +156,7 @@ public class ChapterService {
     //Move target after chapter.
     @Transactional
     public ChapterDTO move(User user, long chapterId, long targetId) {
-        if (chapterId == targetId) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (chapterId == targetId) throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         Chapter target = chapterRepository.findById(targetId).orElse(null);
         if (chapter == null || target == null || target.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)

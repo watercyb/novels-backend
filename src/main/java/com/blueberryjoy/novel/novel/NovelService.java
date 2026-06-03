@@ -60,7 +60,7 @@ public class NovelService {
         novel.setTitle(title);
         novel.setDescription(description);
         Novel.Type novelType = Novel.Type.getType(type);
-        if (novelType == null) throw new ApiException("Novel type cannot be empty.", HttpStatus.BAD_REQUEST);
+        if (novelType == null) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
         novel.setType(novelType);
         novel.setAuthor(user);
         novel.setCoverUrl("");
@@ -71,10 +71,10 @@ public class NovelService {
             String contentType = coverImage.getContentType();
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
-                    throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("FILE_TOO_LARGE", HttpStatus.BAD_REQUEST);
                 String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId(), novel.getCoverUrl());
                 if (fileName == null || fileName.isEmpty())
-                    throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("UNABLE_UPDATE_COVER", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
             }
         }
@@ -102,9 +102,9 @@ public class NovelService {
     public void addTag(User user, long novelId, long tagId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
-        if (novel == null || tag == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (novel == null || tag == null) throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_EDIT_NOVEL", HttpStatus.BAD_REQUEST);
         if (!novel.getTags().contains(tag)) {
             tag.updateCount(1);
             tagRepository.save(tag);
@@ -116,9 +116,9 @@ public class NovelService {
     public void removeTag(User user, long novelId, long tagId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         Tag tag = tagRepository.findById(tagId).orElse(null);
-        if (novel == null || tag == null) throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+        if (novel == null || tag == null) throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("You do not have permission to edit this novel.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_EDIT_NOVEL", HttpStatus.BAD_REQUEST);
         if (novel.getTags().contains(tag)) {
             tag.updateCount(-1);
             tagRepository.save(tag);
@@ -237,7 +237,7 @@ public class NovelService {
     @Transactional
     public void deleteById(User user, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
-        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to delete this novel.", HttpStatus.BAD_REQUEST);
 
@@ -265,7 +265,7 @@ public class NovelService {
     @Transactional
     public NovelDTO updateNovel(MultipartFile coverImage, User user, long id, String title, String description, String type, List<Long> tags) {
         Novel novel = novelRepository.findById(id).orElse(null);
-        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to update this novel.", HttpStatus.BAD_REQUEST);
         if (title != null) novel.setTitle(title);

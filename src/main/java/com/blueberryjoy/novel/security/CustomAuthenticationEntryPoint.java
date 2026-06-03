@@ -18,7 +18,7 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         response.setContentType("application/json");
         response.getWriter().write("""
-                    {"success": false, "message": "Please login"}
+                    {"success": false, "message": "NEED_LOGIN"}
                 """);
     }
 }

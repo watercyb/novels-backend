@@ -60,11 +60,11 @@ public class FileService {
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
                     return repoApiUrl + "files/" + res.filename;
                 } catch (ParseException e) {
-                    throw new ApiException("Cannot update file", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("UNABLE_UPDATE_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -78,21 +78,21 @@ public class FileService {
                         System.out.println(text);
                         return text;
                     } catch (ParseException e) {
-                        throw new ApiException("Cannot get file", HttpStatus.INTERNAL_SERVER_ERROR);
+                        throw new ApiException("UNABLE_GET_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                     }
                 } else {
-                    throw new ApiException("Cannot get file", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("UNABLE_GET_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public String uploadAvatar(MultipartFile file, long userId, String avatarUrl) {
         try {
             if (file == null || file.isEmpty())
-                throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "avatar.php");
 
@@ -118,14 +118,14 @@ public class FileService {
                 }
             }
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     public String uploadNovelCover(MultipartFile file, long userId, long novelId, String coverUrl) {
         try {
             if (file == null || file.isEmpty())
-                throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
             try (CloseableHttpClient client = HttpClients.createDefault()) {
                 HttpPost post = new HttpPost(repoApiUrl + "cover.php");
 
@@ -153,7 +153,7 @@ public class FileService {
                 }
             }
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -185,7 +185,7 @@ public class FileService {
                 }
             }
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -214,7 +214,7 @@ public class FileService {
             ImageIO.write(rgbImage, "jpeg", arr);
             return arr.toByteArray();
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -2,7 +2,6 @@ package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.ApiException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,7 +28,7 @@ public class UserService {
     public User createUser(String name, String email, String password, String role) {
         User existingUser = userRepository.findByEmail(email).orElse(null);
         if (existingUser != null)
-            throw new ApiException("User with email " + email + " already exists", HttpStatus.BAD_REQUEST);
+            throw new ApiException("EMAIL_EXISTS", HttpStatus.BAD_REQUEST);
         User user = new User();
         user.setUsername(name);
         user.setEmail(email);

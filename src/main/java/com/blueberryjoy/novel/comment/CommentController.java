@@ -34,7 +34,7 @@ public class CommentController {
     public ResponseEntity<?> getComments(@RequestParam(required = false) Long chapterId, @RequestParam(required = false) Long commentId, Pageable pageable) {
         try {
             if (chapterId == null && commentId == null)
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             if (commentId == null) {
                 Page<CommentDTO> comments = commentService.getCommentsByChapter(chapterId, pageable);
@@ -46,7 +46,7 @@ public class CommentController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -56,29 +56,29 @@ public class CommentController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to create or update comment right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_CREATE_OR_UPDATE_COMMENT", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number chapterId = (Number) body.get("chapterId");
             Number parentId = (Number) body.get("parentId");
             Number commentId = (Number) body.get("commentId");
             String content = (String) body.get("content");
             if (content == null || content.replace(" ", "").isEmpty())
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             if ((chapterId == null && parentId == null && commentId == null))
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             if (commentId == null) {
                 CommentDTO comment = commentService.createComment(user, chapterId, parentId, content);
                 return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment created successfully", comment, null, null));
             } else {
                 //TODO update comment is currently not allowed.
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
                 //CommentDTO comment = commentService.updateComment(user, commentId, content);
                 //return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment updated successfully", comment, null));
             }
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -86,10 +86,10 @@ public class CommentController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteCommentById(@PathVariable Long commentId) {
         try {
-            if (commentId == null) throw new ApiException("Comment not found", HttpStatus.BAD_REQUEST);
+            if (commentId == null) throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete comment right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             commentService.deleteComment(user, commentId);
             return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment deleted successfully", null, null, null));
@@ -97,7 +97,7 @@ public class CommentController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

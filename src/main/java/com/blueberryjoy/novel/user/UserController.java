@@ -60,7 +60,7 @@ public class UserController {
             String email = (String) body.get("email");
             String password = (String) body.get("password");
             if (username == null || email == null || password == null)
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             User user = userService.createUser(username, email, password, "USER");
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
@@ -74,7 +74,7 @@ public class UserController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -84,10 +84,10 @@ public class UserController {
             String email = (String) body.get("email");
             String password = (String) body.get("password");
             if (email == null || password == null)
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             User user = userService.findUserByEmail(email);
             if (user == null || !passwordEncoder.matches(password, user.getPasswordHash()))
-                throw new ApiException("Incorrect email or password. Please try again.", HttpStatus.UNAUTHORIZED);
+                throw new ApiException("UNABLE_LOGIN", HttpStatus.UNAUTHORIZED);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
@@ -100,7 +100,7 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -117,9 +117,9 @@ public class UserController {
                     }
                 }
             }
-            if (token == null) throw new ApiException("Please login.", HttpStatus.UNAUTHORIZED);
+            if (token == null) throw new ApiException("NEED_LOGIN", HttpStatus.UNAUTHORIZED);
             User user = jwtUtils.verifyRefreshToken(token);
-            if (user == null) throw new ApiException("Please login.", HttpStatus.UNAUTHORIZED);
+            if (user == null) throw new ApiException("NEED_LOGIN", HttpStatus.UNAUTHORIZED);
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
@@ -131,7 +131,7 @@ public class UserController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -157,7 +157,7 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -189,7 +189,7 @@ public class UserController {
             throw e;
         } catch (
                 Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -204,7 +204,7 @@ public class UserController {
             String oldPassword = (String) body.get("oldPassword");
             String newPassword = (String) body.get("newPassword");
             if (oldPassword == null || oldPassword.isEmpty() || newPassword == null || newPassword.isEmpty())
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             if (!passwordEncoder.matches(oldPassword, user.getPasswordHash()))
                 throw new ApiException("Unable to update password right now.", HttpStatus.BAD_REQUEST);
             if (newPassword.equals(oldPassword))
@@ -222,7 +222,7 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -231,7 +231,7 @@ public class UserController {
         try {
             String email = (String) body.get("email");
             if (email == null || email.isEmpty())
-                throw new ApiException("Please complete all required fields to proceed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             User user = userService.findUserByEmail(email);
             if (user != null) {
                 String code = UUID.randomUUID().toString();
@@ -242,7 +242,7 @@ public class UserController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -253,10 +253,10 @@ public class UserController {
             String code = (String) body.get("code");
             String password = (String) body.get("password");
             if (email == null || email.isEmpty() || code == null || code.isEmpty() || password == null || password.isEmpty())
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             User user = userService.findUserByEmail(email);
             if (user == null || !resetPasswordCodeStore.check(user.getId(), code))
-                throw new ApiException("This action isn’t allowed.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             userService.updatePassword(user, password);
             resetPasswordCodeStore.remove(user.getId());
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
@@ -271,7 +271,7 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -288,7 +288,7 @@ public class UserController {
             throw e;
         } catch (Exception e) {
             System.out.println(e.getMessage());
-            throw new ApiException("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

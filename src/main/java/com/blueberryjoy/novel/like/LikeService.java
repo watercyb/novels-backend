@@ -22,7 +22,7 @@ public class LikeService {
     @Transactional
     public void like(User user, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
-        if (novel == null) throw new ApiException("Novel not found", HttpStatus.BAD_REQUEST);
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (likeRepository.existsByUserIdAndNovelId(user.getId(), novelId))
             throw new ApiException("Already liked", HttpStatus.BAD_REQUEST);
         Like like = new Like();
@@ -37,7 +37,7 @@ public class LikeService {
     public void unlike(User user, long novelId) {
         Like like = likeRepository.findByUserIdAndNovelId(user.getId(), novelId);
         if (like == null || !Objects.equals(like.getUser().getId(), user.getId()))
-            throw new ApiException("Unable to unlike right now.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_UNLIKE_NOVEL", HttpStatus.BAD_REQUEST);
         Novel novel = like.getNovel();
         likeRepository.delete(like);
         novel.updateLikeCount(-1);
