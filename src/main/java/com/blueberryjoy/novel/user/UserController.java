@@ -7,7 +7,8 @@ Post /update (authenticated) form-data: avatarImage(file), username(String) -> U
 Post /update_password (authenticated) form-data: {oldPassword, newPassword}
 Post /forgot_password form-data: {email} -> UserDTO
 Post /reset_password form-data: {email, code, password}
-Get (authenticated) -> UserDTO
+Get / (authenticated) -> UserDTO
+Get /{chapterId} PathVariable: chapterId -> UserDTO
 */
 
 package com.blueberryjoy.novel.user;

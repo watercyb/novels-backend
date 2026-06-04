@@ -36,7 +36,7 @@ public class LikeService {
     @Transactional
     public void unlike(User user, long novelId) {
         Like like = likeRepository.findByUserIdAndNovelId(user.getId(), novelId);
-        if (like == null || !Objects.equals(like.getUser().getId(), user.getId()))
+        if (like == null)
             throw new ApiException("UNABLE_UNLIKE_NOVEL", HttpStatus.BAD_REQUEST);
         Novel novel = like.getNovel();
         likeRepository.delete(like);

@@ -23,6 +23,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     boolean existsByUserIdAndNovelId(Long userId, Long novelId);
 
+    Favorite findByUserIdAndNovelId(Long userId, Long novelId);
+
     @Modifying
     @Query("""
                 DELETE FROM Favorite f

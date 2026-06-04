@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.favorite;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.like.Like;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.NovelRepository;
@@ -35,9 +36,9 @@ public class FavoriteService {
     }
 
     @Transactional
-    public void deleteFavorite(User user, long favoriteId) {
-        Favorite favorite = favoriteRepository.findById(favoriteId).orElse(null);
-        if (favorite == null || !Objects.equals(favorite.getUser().getId(), user.getId()))
+    public void deleteFavorite(User user, long novelId) {
+        Favorite favorite = favoriteRepository.findByUserIdAndNovelId(user.getId(), novelId);
+        if (favorite == null)
             throw new ApiException("UNABLE_REMOVE_FAVORITE", HttpStatus.BAD_REQUEST);
         favoriteRepository.delete(favorite);
     }

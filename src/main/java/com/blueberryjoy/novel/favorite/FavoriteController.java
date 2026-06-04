@@ -48,17 +48,17 @@ public class FavoriteController {
         }
     }
 
-    @DeleteMapping("/{favoriteId}")
+    @DeleteMapping("/{novelId}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> deleteFavorite(@PathVariable Long favoriteId) {
+    public ResponseEntity<?> deleteFavorite(@PathVariable Long novelId) {
         try {
-            if (favoriteId == null)
+            if (novelId == null)
                 throw new ApiException("UNABLE_REMOVE_FAVORITES", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("UNABLE_REMOVE_FAVORITES", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            favoriteService.deleteFavorite(user, favoriteId);
+            favoriteService.deleteFavorite(user, novelId);
             return ResponseEntity.status(HttpStatus.OK).body(new FavoriteResponse(true, "Removed from favorites successfully", null, null));
         } catch (ApiException e) {
             throw e;
