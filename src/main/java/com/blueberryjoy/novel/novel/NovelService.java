@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.chpater.Chapter;
+import com.blueberryjoy.novel.chpater.ChapterDTO;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
 import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
@@ -50,7 +51,7 @@ public class NovelService {
     @Transactional
     public NovelDTO getNovel(Long id) {
         Novel novel = novelRepository.findById(id).orElse(null);
-        if (novel == null) return null;
+        if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         return new NovelDTO(novel);
     }
 
@@ -306,6 +307,21 @@ public class NovelService {
         }
         novel = novelRepository.save(novel);
         return new NovelDTO(novel);
+    }
+
+    @Transactional
+    public List<NovelDTO> getMyNovels(Long authorId) {
+        List<Novel> list = novelRepository.queryNovelsByAuthor(authorId);
+        return list.stream().map(NovelDTO::new).collect(Collectors.toList());
+    }
+
+    @Transactional
+    public NovelDTO getMyNovel(User user, Long novelId) {
+        Novel novel = novelRepository.findById(novelId).orElse(null);
+        if (novel == null || !Objects.equals(user.getId(), novel.getAuthor().getId()))
+            throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
+        List<ChapterDTO> chapters = chapterRepository.findChapterDTOByNovelId(novel.getId());
+        return new NovelDTO(novel, chapters);
     }
 
     private static boolean containsChinese(String text) {

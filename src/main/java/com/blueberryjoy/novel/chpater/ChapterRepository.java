@@ -1,5 +1,6 @@
 package com.blueberryjoy.novel.chpater;
 
+import com.blueberryjoy.novel.novel.Novel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -115,4 +116,12 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     @Query(value = "SELECT CURRENT_TIMESTAMP", nativeQuery = true)
     LocalDateTime now();
+
+    @Query("""
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                FROM Chapter c
+                WHERE c.novel.id = :novelId
+                ORDER BY c.orderIndex ASC
+            """)
+    List<ChapterDTO> findChapterDTOByNovelId(@Param("novelId") Long novelId);
 }
