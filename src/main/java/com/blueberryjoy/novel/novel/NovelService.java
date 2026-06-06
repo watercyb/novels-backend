@@ -269,7 +269,10 @@ public class NovelService {
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to update this novel.", HttpStatus.BAD_REQUEST);
-        if (title != null) novel.setTitle(title);
+        if (title != null) {
+            if (title.trim().isEmpty()) throw new ApiException("EMPTY_TITLE", HttpStatus.BAD_REQUEST);
+            novel.setTitle(title);
+        }
         Novel.Type novelType = Novel.Type.getType(type);
         if (novelType != null)
             novel.setType(novelType);

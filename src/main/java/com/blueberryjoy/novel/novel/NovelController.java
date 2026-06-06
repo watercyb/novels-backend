@@ -1,7 +1,7 @@
 /*
 Get /{novelId} PathVariable: novelId -> NovelDTO
 Get / RequestParam: userId(long), title(String), tagIds(List<Long>), pageable(Pageable), type(String), tags(List<Long>) -> PageDTO<NovelDTO>
-Post / (hasAnyAuthority('AUTHOR', 'ADMIN', 'SUPERADMIN')) form-data: avatarImage(file), id(long), username(String), title(String), description(String) -> NovelDTO
+Post / (hasAnyAuthority('AUTHOR', 'ADMIN', 'SUPERADMIN')) form-data: coverImage(file), id(long), title(String), description(String), type(String), tags(List<Long>) -> NovelDTO
 Delete /{novelId} (authenticated) PathVariable: novelId
 Put /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
 Delete /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
