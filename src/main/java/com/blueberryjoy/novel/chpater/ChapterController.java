@@ -1,6 +1,6 @@
 /*
 Get /{chapterId} PathVariable: chapterId, RequestParam: adjacent(boolean) -> List<ChapterDTO> (chapter, prv, next)
-Get /{chapterId}/edit (authenticated) PathVariable: chapterId, RequestParam: adjacent(boolean) -> List<ChapterDTO> (chapter, prv, next)
+Get /my-novels/{chapterId} (authenticated) PathVariable: chapterId, RequestParam: adjacent(boolean) -> List<ChapterDTO> (chapter, prv, next)
 Get / RequestParam: novelId(long),  pageable(Pageable) -> PageDTO<ChapterDTO>
 Get /edit (authenticated) RequestParam: novelId(long),  pageable(Pageable) -> PageDTO<ChapterDTO>
 Post / (authenticated) JSON: {novelId, chapterId, title, content} -> List<ChapterDTO>
@@ -49,7 +49,7 @@ public class ChapterController {
         }
     }
 
-    @GetMapping("/{chapterId}/edit")
+    @GetMapping("/my-novels/{chapterId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> getChapterById(@PathVariable Long chapterId, @RequestParam(defaultValue = "true") boolean adjacent) {
         try {
@@ -125,6 +125,7 @@ public class ChapterController {
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
+            System.err.println(e.getMessage());
             throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

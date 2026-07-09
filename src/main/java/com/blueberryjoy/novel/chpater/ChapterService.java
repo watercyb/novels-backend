@@ -69,7 +69,7 @@ public class ChapterService {
 
     @Transactional
     public ChapterDTO createChapter(User user, long novelId, String title, String content) {
-        if (title == null || title.isEmpty() || content == null || content.isEmpty())
+        if (title == null || title.isEmpty() || content == null)
             throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
@@ -198,7 +198,7 @@ public class ChapterService {
         Novel novel = chapter.getNovel();
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("You do not have permission to delete this chapter.", HttpStatus.BAD_REQUEST);
-        if (chapter.getContent() == null || chapter.getContent().isEmpty())
+        if (chapter.getContent() == null)
             fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "removal", true);
         int wordCount = chapter.getWordCount();
         commentRepository.deleteRepliesByChapter(chapterId);
