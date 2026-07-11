@@ -41,3 +41,7 @@ out/
 ### RSA ###
 private_key.pem
 public_key.pem
+
+run.bat
+run.ps1
+run.sh

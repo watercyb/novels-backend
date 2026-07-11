@@ -1,7 +1,6 @@
 package com.blueberryjoy.novel.favorite;
 
 import com.blueberryjoy.novel.exception.ApiException;
-import com.blueberryjoy.novel.like.Like;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.NovelRepository;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class FavoriteService {

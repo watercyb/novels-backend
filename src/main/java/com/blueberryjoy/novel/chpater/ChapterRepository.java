@@ -1,6 +1,5 @@
 package com.blueberryjoy.novel.chpater;
 
-import com.blueberryjoy.novel.novel.Novel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,7 +14,7 @@ import java.util.List;
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(
-                c.id, c.novel.id, c.title, c.orderIndex, c.published
+                c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published
             )
             FROM Chapter c
             WHERE c.novel.id = :novelId
@@ -25,7 +24,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
 
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(
-                c.id, c.novel.id, c.title, c.orderIndex, c.published
+                c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published
             )
             FROM Chapter c
             WHERE c.novel.id = :novelId
@@ -54,7 +53,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     void deleteByNovelId(Long novelId);
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex < :orderIndex
@@ -67,7 +66,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     );
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex < :orderIndex
@@ -81,7 +80,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     );
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex > :orderIndex
@@ -94,7 +93,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     );
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                   AND c.orderIndex > :orderIndex
@@ -118,7 +117,7 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     LocalDateTime now();
 
     @Query("""
-                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.published)
+                SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(c.id, c.novel.id, c.title, c.orderIndex, c.wordCount, c.published)
                 FROM Chapter c
                 WHERE c.novel.id = :novelId
                 ORDER BY c.orderIndex ASC

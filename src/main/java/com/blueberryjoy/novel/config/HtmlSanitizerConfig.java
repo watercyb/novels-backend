@@ -2,7 +2,6 @@ package com.blueberryjoy.novel.config;
 
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
-import org.owasp.html.Sanitizers;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 

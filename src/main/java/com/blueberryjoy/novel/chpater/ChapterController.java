@@ -157,11 +157,11 @@ public class ChapterController {
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("Unable to move chapter right now.", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
-            Number chapterId = (Number) body.get("chapterId");
-            Number targetId = (Number) body.get("targetId");
-            if (chapterId == null || targetId == null)
+            Number targetChapterId = (Number) body.get("targetChapterId");
+            Number movingChapterId = (Number) body.get("movingChapterId");
+            if (targetChapterId == null || movingChapterId == null)
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
-            ChapterDTO chapter = chapterService.move(user, chapterId.longValue(), targetId.longValue());
+            ChapterDTO chapter = chapterService.move(user, targetChapterId.longValue(), movingChapterId.longValue());
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", List.of(chapter), null));
         } catch (ApiException e) {
             throw e;

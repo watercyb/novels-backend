@@ -7,17 +7,8 @@ Get / (authenticated)
 package com.blueberryjoy.novel.like;
 
 import com.blueberryjoy.novel.exception.ApiException;
-import com.blueberryjoy.novel.favorite.FavoriteService;
-import com.blueberryjoy.novel.novel.Novel;
-import com.blueberryjoy.novel.novel.NovelDTO;
-import com.blueberryjoy.novel.novel.NovelRepository;
-import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
-import com.blueberryjoy.novel.user.UserRepository;
-import com.blueberryjoy.novel.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

@@ -91,7 +91,7 @@ public class ChapterService {
         chapter.setWordCount(wordCount);
         chapter.setPublished(false);
         chapterRepository.save(chapter);
-        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.isPublished());
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.getWordCount(), chapter.isPublished());
     }
 
     @Transactional
@@ -134,7 +134,7 @@ public class ChapterService {
         novel.setLastChapterTitle(chapter.getTitle());
         novelRepository.save(novel);
         userRepository.save(user);
-        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.isPublished());
+        return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.getWordCount(), chapter.isPublished());
     }
 
     public Page<ChapterDTO> getChapters(User user, long novelId, Pageable pageable, boolean published) {
@@ -155,39 +155,39 @@ public class ChapterService {
 
     //Move target after chapter.
     @Transactional
-    public ChapterDTO move(User user, long chapterId, long targetId) {
-        if (chapterId == targetId) throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
-        Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        Chapter target = chapterRepository.findById(targetId).orElse(null);
-        if (chapter == null || target == null || target.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
+    public ChapterDTO move(User user, long targetChapterId, long movingChapterId) {
+        if (targetChapterId == movingChapterId) throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+        Chapter targetChapter = chapterRepository.findById(targetChapterId).orElse(null);
+        Chapter movingChapter = chapterRepository.findById(movingChapterId).orElse(null);
+        if (targetChapter == null || movingChapter == null || movingChapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
             throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
-        ChapterDTO next = chapterRepository.findNextChapterDTO(chapter.getNovel().getId(), chapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
-        Novel novelChapter = chapter.getNovel();
-        Novel novelTarget = target.getNovel();
+        ChapterDTO next = chapterRepository.findNextChapterDTO(targetChapter.getNovel().getId(), targetChapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
+        Novel novelChapter = targetChapter.getNovel();
+        Novel novelTarget = movingChapter.getNovel();
         if (!novelChapter.getAuthor().getId().equals(user.getId()) || !novelTarget.getAuthor().getId().equals(user.getId()))
             throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
         if (next == null) {
-            if (chapter.getOrderIndex().compareTo(target.getOrderIndex()) == 0)
-                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
-            BigDecimal newIndex = chapter.getOrderIndex().setScale(0, RoundingMode.CEILING).add(BigDecimal.ONE);
-            target.setOrderIndex(newIndex);
-            chapterRepository.save(target);
+            if (targetChapter.getOrderIndex().compareTo(movingChapter.getOrderIndex()) == 0)
+                return new ChapterDTO(movingChapter.getId(), movingChapter.getNovel().getId(), movingChapter.getTitle(), movingChapter.getOrderIndex(), movingChapter.getWordCount(), movingChapter.isPublished());
+            BigDecimal newIndex = targetChapter.getOrderIndex().setScale(0, RoundingMode.CEILING).add(BigDecimal.ONE);
+            movingChapter.setOrderIndex(newIndex);
+            chapterRepository.save(movingChapter);
         } else {
             if (!Objects.requireNonNull(novelRepository.findById(next.getNovelId()).orElse(null)).getAuthor().getId().equals(user.getId()))
                 throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
-            if (next.getId() == targetId)
-                return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
-            BigDecimal orderIndexChapter = chapter.getOrderIndex();
+            if (next.getId() == movingChapterId)
+                return new ChapterDTO(movingChapter.getId(), movingChapter.getNovel().getId(), movingChapter.getTitle(), movingChapter.getOrderIndex(), movingChapter.getWordCount(), movingChapter.isPublished());
+            BigDecimal orderIndexChapter = targetChapter.getOrderIndex();
             BigDecimal orderIndexNext = next.getOrderIndex();
             BigDecimal newIndex = orderIndexChapter.add(orderIndexNext).divide(BigDecimal.valueOf(2), 10, RoundingMode.HALF_UP);
             if (newIndex.compareTo(orderIndexChapter) == 0 || newIndex.compareTo(orderIndexNext) == 0) {
                 chapterRepository.shiftOrderIndexes(next.getId(), orderIndexNext);
                 newIndex = orderIndexNext;
             }
-            target.setOrderIndex(newIndex);
-            chapterRepository.save(target);
+            movingChapter.setOrderIndex(newIndex);
+            chapterRepository.save(movingChapter);
         }
-        return new ChapterDTO(target.getId(), target.getNovel().getId(), target.getTitle(), target.getOrderIndex(), chapter.isPublished());
+        return new ChapterDTO(movingChapter.getId(), movingChapter.getNovel().getId(), movingChapter.getTitle(), movingChapter.getOrderIndex(), movingChapter.getWordCount(), movingChapter.isPublished());
     }
 
     @Transactional

@@ -1,6 +1,5 @@
 package com.blueberryjoy.novel.user;
 
-import com.blueberryjoy.novel.novel.Novel;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;

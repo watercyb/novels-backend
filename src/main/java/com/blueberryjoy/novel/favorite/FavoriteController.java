@@ -8,7 +8,6 @@ Get /ids: (authenticated) RequestParam: pageable(Pageable)
 package com.blueberryjoy.novel.favorite;
 
 import com.blueberryjoy.novel.exception.ApiException;
-import com.blueberryjoy.novel.novel.NovelController;
 import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
