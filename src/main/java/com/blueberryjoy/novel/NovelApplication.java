@@ -2,13 +2,9 @@ package com.blueberryjoy.novel;
 
 import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.novel.NovelDTO;
-import kotlin.collections.ArrayDeque;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @SpringBootApplication
 public class NovelApplication {
