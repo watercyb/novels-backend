@@ -5,6 +5,7 @@ import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.favorite.FavoriteRepository;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
@@ -38,6 +39,8 @@ public class AdminService {
     private LikeRepository likeRepository;
     @Autowired
     private FavoriteRepository favoriteRepository;
+    @Autowired
+    private TopTenService topTenService;
 
     @Transactional
     public void deleteById(User adminUser, long novelId) {
@@ -62,6 +65,7 @@ public class AdminService {
         novelRepository.save(novel);
         chapterRepository.deleteByNovelId(novel.getId());
         novelRepository.delete(novel);
+        topTenService.removeFromTopTen(novel);
         user.updateNovelCount(-1);
         user.updateChapterCount(-chapterCount);
         user.updateWordCount(-wordCount);

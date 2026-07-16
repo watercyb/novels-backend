@@ -369,4 +369,7 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
                     """,
             nativeQuery = true)
     Page<Novel> queryAllNovelsByType(String typeStr, Pageable pageable);
+
+    @Query("SELECT n FROM Novel n WHERE n.id IN (:ids)")
+    List<Novel> queryNovelsByIds(@Param("ids") List<Long> ids);
 }

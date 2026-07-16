@@ -3,6 +3,7 @@ package com.blueberryjoy.novel.chpater;
 import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
 import com.blueberryjoy.novel.user.User;
@@ -38,6 +39,8 @@ public class ChapterService {
     private CommentRepository commentRepository;
     @Autowired
     private PolicyFactory policyFactory;
+    @Autowired
+    private TopTenService topTenService;
 
     public List<ChapterDTO> getChapter(User user, Long id, boolean adjacent, boolean published) {
         Chapter chapter = chapterRepository.findById(id).orElse(null);
@@ -133,6 +136,7 @@ public class ChapterService {
         }
         novel.setLastChapterTitle(chapter.getTitle());
         novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
         userRepository.save(user);
         return new ChapterDTO(chapter.getId(), chapter.getNovel().getId(), chapter.getTitle(), chapter.getOrderIndex(), chapter.getWordCount(), chapter.isPublished());
     }
@@ -213,6 +217,7 @@ public class ChapterService {
             user.updateChapterCount(-1);
         }
         novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
         userRepository.save(user);
     }
 
@@ -282,6 +287,7 @@ public class ChapterService {
         novel.setLastUpdatedAt(chapter.getUpdatedAt());
         novel.setLastChapterTitle(chapter.getTitle());
         novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
         user.updateChapterCount(1);
         user.updateWordCount(wordCount);
         userRepository.save(user);

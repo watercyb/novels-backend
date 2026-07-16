@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.like;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
 import com.blueberryjoy.novel.user.User;
@@ -17,6 +18,8 @@ public class LikeService {
     private LikeRepository likeRepository;
     @Autowired
     private NovelRepository novelRepository;
+    @Autowired
+    private TopTenService topTenService;
 
     @Transactional
     public void like(User user, long novelId) {
@@ -30,6 +33,7 @@ public class LikeService {
         likeRepository.save(like);
         novel.updateLikeCount(1);
         novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
     }
 
     @Transactional
@@ -41,6 +45,7 @@ public class LikeService {
         likeRepository.delete(like);
         novel.updateLikeCount(-1);
         novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
     }
 
     @Transactional

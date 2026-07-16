@@ -7,6 +7,7 @@ import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.favorite.FavoriteRepository;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
@@ -47,6 +48,8 @@ public class NovelService {
     private LikeRepository likeRepository;
     @Autowired
     private FavoriteRepository favoriteRepository;
+    @Autowired
+    private TopTenService topTenService;
 
     @Transactional
     public NovelDTO getNovel(Long id) {
@@ -93,6 +96,7 @@ public class NovelService {
         }
         novel.setLastUpdatedAt(chapter.getUpdatedAt());
         novel = novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
         user.updateNovelCount(1);
         userRepository.save(user);
 
@@ -257,6 +261,7 @@ public class NovelService {
         novelRepository.save(novel);
         chapterRepository.deleteByNovelId(novel.getId());
         novelRepository.delete(novel);
+        topTenService.removeFromTopTen(novel);
         user.updateNovelCount(-1);
         user.updateChapterCount(-chapterCount);
         user.updateWordCount(-wordCount);
@@ -309,6 +314,7 @@ public class NovelService {
             novel.setTags(new HashSet<>(newTags));
         }
         novel = novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
         return new NovelDTO(novel);
     }
 

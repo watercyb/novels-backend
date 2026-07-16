@@ -27,6 +27,9 @@ public class NovelDTO {
     private LocalDateTime lastUpdatedAt;
     private LocalDateTime createdAt;
 
+    public NovelDTO() {
+    }
+
     public NovelDTO(Novel novel) {
         id = novel.getId();
         title = novel.getTitle();
@@ -66,6 +69,23 @@ public class NovelDTO {
         lastChapterTitle = novel.getLastChapterTitle();
         lastUpdatedAt = novel.getLastUpdatedAt();
         createdAt = novel.getCreatedAt();
+    }
+
+    public NovelDTO copy() {
+        NovelDTO copy = new NovelDTO();
+        copy.setId(this.id);
+        copy.setTitle(this.title);
+        copy.setUserId(this.userId);
+        copy.setAuthor(this.author);
+        copy.setCoverUrl(this.coverUrl);
+        copy.setLikeCount(this.likeCount);
+        copy.setChapterCount(this.chapterCount);
+        copy.setWordCount(this.wordCount);
+        copy.setType(this.type);
+        copy.setLastChapterTitle(this.lastChapterTitle);
+        copy.setLastUpdatedAt(this.lastUpdatedAt);
+        copy.setCreatedAt(this.createdAt);
+        return copy;
     }
 
     public String toString() {

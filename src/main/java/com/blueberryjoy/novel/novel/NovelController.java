@@ -12,6 +12,7 @@ Get /my-novels/{novelId} (authenticated) PathVariable: novelId -> List<NovelDTO>
 package com.blueberryjoy.novel.novel;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -34,6 +35,9 @@ import java.util.Set;
 public class NovelController {
     @Autowired
     private NovelService novelService;
+    @Autowired
+    private TopTenService topTenService;
+
     private static final Set<String> allowedFields = Set.of("title", "like_count", "chapter_count", "word_count", "last_updated_at");
 
     @GetMapping("/{novelId}")
@@ -41,6 +45,7 @@ public class NovelController {
         try {
             if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             NovelDTO novel = novelService.getNovel(novelId);
+            topTenService.increaseTodayCount(novel.getId());
             return ResponseEntity.status(HttpStatus.OK).body(new NovelController.NovelResponse(true, "", novel, null, null));
         } catch (ApiException e) {
             throw e;
