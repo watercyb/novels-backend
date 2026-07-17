@@ -372,4 +372,12 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
 
     @Query("SELECT n FROM Novel n WHERE n.id IN (:ids)")
     List<Novel> queryNovelsByIds(@Param("ids") List<Long> ids);
+
+    @Query(value = """
+            SELECT DISTINCT n.*
+            FROM novels n
+            ORDER BY last_updated_at DESC
+            LIMIT 10
+            """, nativeQuery = true)
+    List<Novel> queryRecent10Novels();
 }

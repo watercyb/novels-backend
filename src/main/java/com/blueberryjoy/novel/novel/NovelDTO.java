@@ -6,6 +6,7 @@ import com.blueberryjoy.novel.tag.TagDTO;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -90,5 +91,9 @@ public class NovelDTO {
 
     public String toString() {
         return "ID: " + id + " Title: " + title + " Tags: " + tags;
+    }
+
+    public long getLastUpdatedAtTime() {
+        return lastUpdatedAt.atZone(ZoneId.of("UTC")).toEpochSecond();
     }
 }

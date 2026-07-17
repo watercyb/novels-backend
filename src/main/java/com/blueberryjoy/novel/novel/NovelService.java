@@ -7,6 +7,7 @@ import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.favorite.FavoriteRepository;
 import com.blueberryjoy.novel.file.FileService;
+import com.blueberryjoy.novel.homepage.RecentNovelService;
 import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.tag.Tag;
@@ -50,6 +51,8 @@ public class NovelService {
     private FavoriteRepository favoriteRepository;
     @Autowired
     private TopTenService topTenService;
+    @Autowired
+    private RecentNovelService recentNovelService;
 
     @Transactional
     public NovelDTO getNovel(Long id) {
@@ -97,6 +100,7 @@ public class NovelService {
         novel.setLastUpdatedAt(chapter.getUpdatedAt());
         novel = novelRepository.save(novel);
         topTenService.updateTopTen(novel);
+        recentNovelService.updateRecentNovel(novel);
         user.updateNovelCount(1);
         userRepository.save(user);
 
@@ -146,7 +150,7 @@ public class NovelService {
                 if (containsChinese(keyword)) {
                     novels = novelRepository.searchByKeywordTagAndTypeChineseSort(keyword, tags, novelType.name(), pageable);
                 } else {
-                    novels = novelRepository.searchByKeywordTagAndTypeEnglish(keyword, tags, novelType.name(), pageable);
+                    novels = novelRepository.searchByKeywordTagAndTypeEnglishSort(keyword, tags, novelType.name(), pageable);
                 }
             }
         } else {
@@ -262,6 +266,7 @@ public class NovelService {
         chapterRepository.deleteByNovelId(novel.getId());
         novelRepository.delete(novel);
         topTenService.removeFromTopTen(novel);
+        recentNovelService.removeFromRecentNovels(novel);
         user.updateNovelCount(-1);
         user.updateChapterCount(-chapterCount);
         user.updateWordCount(-wordCount);
@@ -315,6 +320,7 @@ public class NovelService {
         }
         novel = novelRepository.save(novel);
         topTenService.updateTopTen(novel);
+        recentNovelService.updateRecentNovel(novel);
         return new NovelDTO(novel);
     }
 

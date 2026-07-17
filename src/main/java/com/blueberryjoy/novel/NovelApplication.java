@@ -13,15 +13,15 @@ public class NovelApplication {
         ConfigurableApplicationContext context =
                 SpringApplication.run(NovelApplication.class, args);
 
-        TopTenService topTenService = context.getBean(TopTenService.class);
-        topTenService.increaseTodayCount(35);
-        topTenService.increaseTodayCount(37);
-        topTenService.increaseTodayCount(38);
-        topTenService.increaseTodayCount(39);
-        topTenService.increaseTodayCount(40);
-        topTenService.updateTopTen();
-        for (NovelDTO novelDTO : topTenService.getTopTen()) {
-            System.out.println(novelDTO);
-        }
+        //TopTenService topTenService = context.getBean(TopTenService.class);
+        //topTenService.increaseTodayCount(35);
+        //topTenService.increaseTodayCount(37);
+        //topTenService.increaseTodayCount(38);
+        //topTenService.increaseTodayCount(39);
+        //topTenService.increaseTodayCount(40);
+        //topTenService.updateTopTen();
+        //for (NovelDTO novelDTO : topTenService.getTopTen()) {
+        //System.out.println(novelDTO);
+        //}
     }
 }

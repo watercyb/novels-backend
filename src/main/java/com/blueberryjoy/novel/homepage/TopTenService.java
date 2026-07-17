@@ -24,7 +24,7 @@ public class TopTenService {
 
     private ConcurrentHashMap<Long, LongAdder> todayCounts = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
-    private ConcurrentHashMap<Long, NovelDTO> topTen = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, NovelDTO> topTens = new ConcurrentHashMap<>();
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional(readOnly = true)
@@ -46,7 +46,7 @@ public class TopTenService {
             ids.add(pq.poll()[0]);
         }
         for (NovelDTO novelDTO : getNovels(ids)) {
-            topTen.put(novelDTO.getId(), novelDTO);
+            topTens.put(novelDTO.getId(), novelDTO);
         }
     }
 
@@ -96,7 +96,7 @@ public class TopTenService {
         for (NovelDTO novelDTO : getNovels(ids)) {
             newTopTen.put(novelDTO.getId(), novelDTO);
         }
-        topTen = newTopTen;
+        topTens = newTopTen;
     }
 
     private WeeklyViewData readFile() {
@@ -126,18 +126,18 @@ public class TopTenService {
     }
 
     public List<NovelDTO> getTopTen() {
-        List<NovelDTO> topTenList = new ArrayList<>(topTen.size());
-        for (NovelDTO novelDTO : topTen.values()) {
+        List<NovelDTO> topTenList = new ArrayList<>(topTens.size());
+        for (NovelDTO novelDTO : topTens.values()) {
             topTenList.add(novelDTO.copy());
         }
         return topTenList;
     }
 
     public void updateTopTen(Novel novel) {
-        if (topTen.containsKey(novel.getId())) topTen.put(novel.getId(), new NovelDTO(novel));
+        if (topTens.containsKey(novel.getId())) topTens.put(novel.getId(), new NovelDTO(novel));
     }
 
     public void removeFromTopTen(Novel novel) {
-        topTen.remove(novel.getId());
+        topTens.remove(novel.getId());
     }
 }

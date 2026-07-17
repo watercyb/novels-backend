@@ -16,6 +16,8 @@ import java.util.List;
 public class HomepageController {
     @Autowired
     private TopTenService topTenService;
+    @Autowired
+    private RecentNovelService recentNovelService;
 
     @GetMapping("/topTen")
     public ResponseEntity<?> getTopTen() {
@@ -29,11 +31,24 @@ public class HomepageController {
         }
     }
 
+    @GetMapping("/Recent")
+    public ResponseEntity<?> getRecentNovels() {
+        try {
+            List<NovelDTO> novels = recentNovelService.getRecentNovels();
+            return ResponseEntity.status(HttpStatus.OK).body(new HomePageResponse(true, "", null, novels));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @GetMapping()
     public ResponseEntity<?> getAll() {
         try {
-            List<NovelDTO> novels = topTenService.getTopTen();
-            return ResponseEntity.status(HttpStatus.OK).body(new HomePageResponse(true, "", novels, null));
+            List<NovelDTO> topTen = topTenService.getTopTen();
+            List<NovelDTO> recentTen = recentNovelService.getRecentNovels();
+            return ResponseEntity.status(HttpStatus.OK).body(new HomePageResponse(true, "", topTen, recentTen));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
