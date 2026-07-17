@@ -47,3 +47,4 @@ run.ps1
 run.sh
 weeklyViews.json
 **/src/**/static/
+build.txt
