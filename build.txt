@@ -1,0 +1,2 @@
+gradlew.bat build -x test
+java -jar build/libs/novel-0.0.1-SNAPSHOT.jar

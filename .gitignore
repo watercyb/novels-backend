@@ -46,3 +46,4 @@ run.bat
 run.ps1
 run.sh
 weeklyViews.json
+**/src/**/static/
