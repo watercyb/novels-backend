@@ -57,7 +57,7 @@ public class TopTenService {
     }
 
     @Transactional(readOnly = true)
-    public void updateTopTen() {
+    public void rotateWeeklyViews() {
         ConcurrentHashMap<Long, LongAdder> oldMap = todayCounts;
         todayCounts = new ConcurrentHashMap<>();
         WeeklyViewData weeklyViewData = readFile();
