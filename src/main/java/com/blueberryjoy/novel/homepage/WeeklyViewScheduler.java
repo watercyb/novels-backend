@@ -12,5 +12,6 @@ public class WeeklyViewScheduler {
     @Scheduled(cron = "0 0 0 * * *")
     public void rotateWeeklyViews() {
         topTenService.rotateWeeklyViews();
+        System.out.println("rotateWeeklyViews");
     }
 }

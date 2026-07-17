@@ -76,9 +76,7 @@ public class FileService {
                 if (contentUrl != null && contentUrl.startsWith(repoApiUrl)) {
                     HttpGet get = new HttpGet(contentUrl);
                     try (CloseableHttpResponse response = client.execute(get)) {
-                        String text = EntityUtils.toString(response.getEntity(), "UTF-8");
-                        System.out.println(text);
-                        return text;
+                        return EntityUtils.toString(response.getEntity(), "UTF-8");
                     } catch (ParseException e) {
                         throw new ApiException("UNABLE_GET_FILE", HttpStatus.INTERNAL_SERVER_ERROR);
                     }
