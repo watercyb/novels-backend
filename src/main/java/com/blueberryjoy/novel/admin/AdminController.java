@@ -1,7 +1,9 @@
 /*
 Delete /{novelId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: novelId
-Post /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId, JSON: {role} -> UserDTO
+Post /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId, JSON: {role}
 Post /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id, name, nameCN, count}
+Delete /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id}
+Delete /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId
 */
 
 
@@ -81,9 +83,46 @@ public class AdminController {
                 adminService.createTag(name, nameCN);
                 return ResponseEntity.ok().body(new AdminResponse(true, "Created successfully"));
             } else {
-                adminService.update(id.longValue(), name, nameCN, count);
+                adminService.updateTag(id.longValue(), name, nameCN, count);
                 return ResponseEntity.ok().body(new AdminResponse(true, "Updated successfully"));
             }
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/tags")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> deleteTag(@RequestBody Map<String, Object> body) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null || auth.getPrincipal() == null)
+                throw new ApiException("UNABLE_CREATE_TAG", HttpStatus.BAD_REQUEST);
+            Number id = (Number) body.get("id");
+            if (id == null)
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
+            adminService.deleteTag(id.longValue());
+            return ResponseEntity.ok().body(new AdminResponse(true, "Deleted successfully"));
+
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/user/{userId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> deleteAccount(@PathVariable Long userId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("UNABLE_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
+            User adminUser = (User) auth.getPrincipal();
+            adminService.deleteAccount(adminUser, userId);
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "Deleted successfully"));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

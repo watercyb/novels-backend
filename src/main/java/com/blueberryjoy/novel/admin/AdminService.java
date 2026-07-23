@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AdminService {
@@ -104,7 +105,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void update(long id, String name, String nameCN, Integer count) {
+    public void updateTag(long id, String name, String nameCN, Integer count) {
         if (tagRepository.findByName(name).orElse(null) != null || tagRepository.findByNameCN(nameCN).orElse(null) != null)
             throw new ApiException("TAG_EXISTS", HttpStatus.BAD_REQUEST);
         Tag tag = tagRepository.findById(id).orElse(null);
@@ -117,5 +118,49 @@ public class AdminService {
         tag.setNameCN(nameCN);
         tag.setTagUsage(count);
         tagRepository.save(tag);
+    }
+
+    @Transactional
+    public void deleteTag(long id) {
+        Tag tag = tagRepository.findById(id).orElse(null);
+        if (tag == null)
+            throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
+        tagRepository.delete(tag);
+    }
+
+    @Transactional
+    public void deleteAccount(User adminUser, long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
+        if (user.getRole() == User.Role.SUPERADMIN)
+            throw new ApiException("NEED_PERMISSION_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
+        if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("NEED_PERMISSION_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
+        if (user.getRole() == User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("NEED_PERMISSION_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
+
+        List<Novel> novels = novelRepository.queryNovelsByAuthor(user.getId());
+        for (Novel novel : novels) {
+            List<Long> tagIds = novel.getTags().stream().map(Tag::getId).toList();
+            tagRepository.decreaseCount(tagIds);
+            int chapterCount = novel.getChapterCount();
+            int wordCount = novel.getWordCount();
+            commentRepository.deleteRepliesByNovel(novel.getId());
+            commentRepository.deleteCommentsByNovel(novel.getId());
+            chapterRepository.deleteChaptersByNovel(novel.getId());
+            likeRepository.deleteLikesByNovelId(novel.getId());
+            favoriteRepository.deleteFavoritesByNovelId(novel.getId());
+            repository.deleteNovelCover(novel, user.getId());
+            novel.getTags().clear();
+            novelRepository.save(novel);
+            chapterRepository.deleteByNovelId(novel.getId());
+            novelRepository.delete(novel);
+            topTenService.removeFromTopTen(novel);
+            recentNovelService.removeFromRecentNovels(novel);
+            user.updateNovelCount(-1);
+            user.updateChapterCount(-chapterCount);
+            user.updateWordCount(-wordCount);
+            userRepository.save(user);
+        }
     }
 }
