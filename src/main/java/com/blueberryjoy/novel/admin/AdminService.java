@@ -15,8 +15,11 @@ import com.blueberryjoy.novel.novel.NovelRepository;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
 import com.blueberryjoy.novel.user.User;
+import com.blueberryjoy.novel.user.UserDTO;
 import com.blueberryjoy.novel.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -209,5 +212,29 @@ public class AdminService {
             parent.updateCommentCount(-1);
         commentRepository.deleteCommentsByParentId(commentId);
         commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public Page<UserDTO> searchByUsername(String username, Pageable pageable) {
+        Page<User> users = userRepository.searchByUsernamePrefix(username, pageable);
+        return users.map(UserDTO::new);
+    }
+
+    @Transactional
+    public Page<UserDTO> getAll(Pageable pageable) {
+        Page<User> users = userRepository.getAll(pageable);
+        return users.map(UserDTO::new);
+    }
+
+    @Transactional
+    public Page<UserDTO> searchByUsernameRole(String username, User.Role role, Pageable pageable) {
+        Page<User> users = userRepository.searchByUsernamePrefixRole(username, role, pageable);
+        return users.map(UserDTO::new);
+    }
+
+    @Transactional
+    public Page<UserDTO> getAllByRole(User.Role role, Pageable pageable) {
+        Page<User> users = userRepository.getAllByRole(role, pageable);
+        return users.map(UserDTO::new);
     }
 }
