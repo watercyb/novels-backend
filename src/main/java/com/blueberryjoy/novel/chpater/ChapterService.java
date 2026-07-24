@@ -109,7 +109,7 @@ public class ChapterService {
             throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null || !Objects.equals(chapter.getNovel().getId(), novel.getId()) || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         if (title != null && !title.isEmpty())
             chapter.setTitle(title);
         if (content != null && !content.isEmpty()) {
@@ -168,12 +168,12 @@ public class ChapterService {
         Chapter targetChapter = chapterRepository.findById(targetChapterId).orElse(null);
         Chapter movingChapter = chapterRepository.findById(movingChapterId).orElse(null);
         if (targetChapter == null || movingChapter == null || movingChapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         ChapterDTO next = chapterRepository.findNextChapterDTO(targetChapter.getNovel().getId(), targetChapter.getOrderIndex(), PageRequest.of(0, 1)).stream().findFirst().orElse(null);
         Novel novelChapter = targetChapter.getNovel();
         Novel novelTarget = movingChapter.getNovel();
         if (!novelChapter.getAuthor().getId().equals(user.getId()) || !novelTarget.getAuthor().getId().equals(user.getId()))
-            throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_MOVE_CHAPTER", HttpStatus.BAD_REQUEST);
         if (next == null) {
             if (targetChapter.getOrderIndex().compareTo(movingChapter.getOrderIndex()) == 0)
                 return new ChapterDTO(movingChapter.getId(), movingChapter.getNovel().getId(), movingChapter.getTitle(), movingChapter.getOrderIndex(), movingChapter.getWordCount(), movingChapter.isPublished());
@@ -182,7 +182,7 @@ public class ChapterService {
             chapterRepository.save(movingChapter);
         } else {
             if (!Objects.requireNonNull(novelRepository.findById(next.getNovelId()).orElse(null)).getAuthor().getId().equals(user.getId()))
-                throw new ApiException("You do not have permission to move this chapter.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("NEED_PERMISSION_MOVE_CHAPTER", HttpStatus.BAD_REQUEST);
             if (next.getId() == movingChapterId)
                 return new ChapterDTO(movingChapter.getId(), movingChapter.getNovel().getId(), movingChapter.getTitle(), movingChapter.getOrderIndex(), movingChapter.getWordCount(), movingChapter.isPublished());
             BigDecimal orderIndexChapter = targetChapter.getOrderIndex();
@@ -202,10 +202,10 @@ public class ChapterService {
     public void deleteChapter(User user, long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         Novel novel = chapter.getNovel();
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("You do not have permission to delete this chapter.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_DELETE_CHAPTER", HttpStatus.BAD_REQUEST);
         if (chapter.getContent() == null)
             fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "removal", true);
         int wordCount = chapter.getWordCount();
@@ -280,10 +280,10 @@ public class ChapterService {
     @Transactional
     public void publishChapter(User user, long chapterId) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
-        if (chapter == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+        if (chapter == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         Novel novel = chapter.getNovel();
         if (novel == null || !Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         chapter.setPublished(true);
         chapterRepository.save(chapter);
         int wordCount = chapter.getWordCount();

@@ -91,12 +91,12 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (id != null) {
                 NovelDTO novel = novelService.updateNovel(coverImage, user, id, title, description, type, tags);
-                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Updated successfully", novel, null, null));
+                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, null, novel, null, null));
             } else {
                 if (title == null) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
                 if (description == null) description = "";
                 NovelDTO novel = novelService.createNovel(coverImage, user, title, description, type, tags);
-                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, "Created successfully", novel, null, null));
+                return ResponseEntity.ok().body(new NovelController.NovelResponse(true, null, novel, null, null));
             }
         } catch (ApiException e) {
             throw e;
@@ -115,7 +115,7 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             novelService.deleteById(user, novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Novel deleted", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -134,7 +134,7 @@ public class NovelController {
             if (novelId == null || tagId == null)
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             novelService.addTag(user, novelId, tagId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag added", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -153,7 +153,7 @@ public class NovelController {
             if (novelId == null || tagId == null)
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             novelService.removeTag(user, novelId, tagId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "Tag removed", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

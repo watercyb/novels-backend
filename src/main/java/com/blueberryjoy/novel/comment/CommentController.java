@@ -68,7 +68,7 @@ public class CommentController {
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             if (commentId == null) {
                 CommentDTO comment = commentService.createComment(user, chapterId, parentId, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment created successfully", comment, null, null));
+                return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, null, comment, null, null));
             } else {
                 //TODO update comment is currently not allowed.
                 throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
@@ -92,7 +92,7 @@ public class CommentController {
                 throw new ApiException("UNABLE_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             commentService.deleteComment(user, commentId);
-            return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, "Comment deleted successfully", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new CommentResponse(true, null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

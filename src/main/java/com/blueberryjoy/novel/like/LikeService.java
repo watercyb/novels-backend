@@ -29,7 +29,7 @@ public class LikeService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (likeRepository.existsByUserIdAndNovelId(user.getId(), novelId))
-            throw new ApiException("Already liked", HttpStatus.BAD_REQUEST);
+            throw new ApiException("ALREADY_LIKED", HttpStatus.BAD_REQUEST);
         Like like = new Like();
         like.setUser(user);
         like.setNovel(novel);

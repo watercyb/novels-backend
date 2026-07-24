@@ -150,19 +150,19 @@ public class UserController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update user info right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_UPDATE_USER_INFO", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
 
             if (avatarImage != null && !avatarImage.isEmpty()) {
                 String contentType = avatarImage.getContentType();
                 if (contentType == null || !contentType.startsWith("image/"))
-                    throw new ApiException("Unsupported file format", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("UNSUPPORTED_FORMAT", HttpStatus.BAD_REQUEST);
                 if (avatarImage.getSize() > 5 * 1024 * 1024)
-                    throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("FILE_TOO_LARGE", HttpStatus.BAD_REQUEST);
 
                 String fileName = repository.uploadAvatar(avatarImage, user.getId(), user.getAvatarUrl());
                 if (fileName == null || fileName.isEmpty())
-                    throw new ApiException("Unable to update user avatar right now.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("UNABLE_UPDATE_AVATAR", HttpStatus.BAD_REQUEST);
                 user.setAvatarUrl(fileName);
             }
             if (username != null && !username.isEmpty()) user.setUsername(username);
@@ -195,7 +195,7 @@ public class UserController {
             ResponseCookie accessCookie = jwtUtils.getAccessCookie(user);
             ResponseCookie refreshCookie = jwtUtils.getRefreshCookie(user);
             ResponseCookie userCookie = jwtUtils.getUserCookie();
-            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, "Uploaded successfully", null));
+            return ResponseEntity.ok().header(HttpHeaders.SET_COOKIE, accessCookie.toString()).header(HttpHeaders.SET_COOKIE, refreshCookie.toString()).header(HttpHeaders.SET_COOKIE, userCookie.toString()).body(new UserResponse(true, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -214,7 +214,7 @@ public class UserController {
                 mailService.sendResetPasswordMail(email, user.getUsername(), url + "/reset-password?email=" + email + "&code=" + code);
                 resetPasswordCodeStore.set(user.getId(), code);
             }
-            return ResponseEntity.ok().body(new UserResponse(true, "If an account exists for this email, you will receive a password reset email shortly.", null));
+            return ResponseEntity.ok().body(new UserResponse(true, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -252,7 +252,7 @@ public class UserController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             return ResponseEntity.ok().body(new UserResponse(true, null, new UserDTO(user)));
         } catch (ApiException e) {

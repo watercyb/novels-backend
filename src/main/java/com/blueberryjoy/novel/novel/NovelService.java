@@ -248,7 +248,7 @@ public class NovelService {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("You do not have permission to delete this novel.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_DELETE_NOVEL", HttpStatus.BAD_REQUEST);
 
         List<Long> tagIds = novel.getTags().stream().map(Tag::getId).toList();
         tagRepository.decreaseCount(tagIds);
@@ -278,7 +278,7 @@ public class NovelService {
         Novel novel = novelRepository.findById(id).orElse(null);
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
-            throw new ApiException("You do not have permission to update this novel.", HttpStatus.BAD_REQUEST);
+            throw new ApiException("NEED_PERMISSION_UPDATE_NOVEL", HttpStatus.BAD_REQUEST);
         if (title != null) {
             if (title.trim().isEmpty()) throw new ApiException("EMPTY_TITLE", HttpStatus.BAD_REQUEST);
             novel.setTitle(title);
@@ -291,10 +291,10 @@ public class NovelService {
             String contentType = coverImage.getContentType();
             if (contentType != null && contentType.startsWith("image/")) {
                 if (coverImage.getSize() > 5 * 1024 * 1024)
-                    throw new ApiException("This file is larger than 5MB. Please upload a smaller version.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("FILE_TOO_LARGE", HttpStatus.BAD_REQUEST);
                 String fileName = repository.uploadNovelCover(coverImage, user.getId(), novel.getId(), novel.getCoverUrl());
                 if (fileName == null || fileName.isEmpty())
-                    throw new ApiException("Unable to update cover image right now.", HttpStatus.BAD_REQUEST);
+                    throw new ApiException("UNABLE_UPDATE_COVER", HttpStatus.BAD_REQUEST);
                 novel.setCoverUrl(fileName);
             }
         }

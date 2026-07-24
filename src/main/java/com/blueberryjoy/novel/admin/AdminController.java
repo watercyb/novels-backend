@@ -1,9 +1,11 @@
 /*
-Delete /{novelId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: novelId
+Delete /novels/{novelId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: novelId
 Post /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId, JSON: {role}
 Post /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id, name, nameCN, count}
 Delete /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id}
 Delete /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId
+Delete /chapters/{chapterId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: chapterId
+Delete /comments/{commentId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: commentId
 */
 
 
@@ -36,8 +38,8 @@ public class AdminController {
                 throw new ApiException("UNABLE_DELETE_NOVEL", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
-            adminService.deleteById(adminUser, novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "Novel deleted"));
+            adminService.deleteNovelById(adminUser, novelId);
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, ""));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -58,7 +60,7 @@ public class AdminController {
                 throw new ApiException("UNABLE_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             adminService.updateUserRole(adminUser, userId, newRole);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "User role updated"));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, ""));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -81,11 +83,10 @@ public class AdminController {
                 if (name == null || nameCN == null)
                     throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
                 adminService.createTag(name, nameCN);
-                return ResponseEntity.ok().body(new AdminResponse(true, "Created successfully"));
             } else {
                 adminService.updateTag(id.longValue(), name, nameCN, count);
-                return ResponseEntity.ok().body(new AdminResponse(true, "Updated successfully"));
             }
+            return ResponseEntity.ok().body(new AdminResponse(true, ""));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -104,7 +105,7 @@ public class AdminController {
             if (id == null)
                 throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             adminService.deleteTag(id.longValue());
-            return ResponseEntity.ok().body(new AdminResponse(true, "Deleted successfully"));
+            return ResponseEntity.ok().body(new AdminResponse(true, ""));
 
         } catch (ApiException e) {
             throw e;
@@ -122,7 +123,44 @@ public class AdminController {
                 throw new ApiException("UNABLE_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             adminService.deleteAccount(adminUser, userId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "Deleted successfully"));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, ""));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @DeleteMapping("/chapters/{chapterId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> deleteChapterById(@PathVariable Long chapterId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("UNABLE_DELETE_NOVEL", HttpStatus.BAD_REQUEST);
+            User adminUser = (User) auth.getPrincipal();
+            if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
+            adminService.deleteChapterById(adminUser, chapterId);
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, ""));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+    @DeleteMapping("/comments/{commentId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> deleteCommentById(@PathVariable Long commentId) {
+        try {
+            if (commentId == null) throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("UNABLE_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
+            User adminUser = (User) auth.getPrincipal();
+            adminService.deleteCommentById(adminUser, commentId);
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, ""));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

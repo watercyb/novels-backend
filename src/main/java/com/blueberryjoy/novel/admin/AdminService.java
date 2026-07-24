@@ -1,6 +1,8 @@
 package com.blueberryjoy.novel.admin;
 
+import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
+import com.blueberryjoy.novel.comment.Comment;
 import com.blueberryjoy.novel.comment.CommentRepository;
 import com.blueberryjoy.novel.exception.ApiException;
 import com.blueberryjoy.novel.favorite.FavoriteRepository;
@@ -19,8 +21,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class AdminService {
@@ -45,9 +47,11 @@ public class AdminService {
     private TopTenService topTenService;
     @Autowired
     private RecentNovelService recentNovelService;
+    @Autowired
+    private FileService fileService;
 
     @Transactional
-    public void deleteById(User adminUser, long novelId) {
+    public void deleteNovelById(User adminUser, long novelId) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
@@ -162,5 +166,48 @@ public class AdminService {
             user.updateWordCount(-wordCount);
             userRepository.save(user);
         }
+    }
+
+    @Transactional
+    public void deleteChapterById(User adminUser, long chapterId) {
+        if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("NEED_PERMISSION_DELETE_CHAPTER", HttpStatus.BAD_REQUEST);
+        Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
+        if (chapter == null || chapter.getOrderIndex().compareTo(BigDecimal.ZERO) == 0)
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
+        Novel novel = chapter.getNovel();
+        User user = novel.getAuthor();
+        if (chapter.getContent() == null)
+            fileService.uploadChapter(novel, user.getId(), chapter.getContentUrl(), "removal", true);
+        int wordCount = chapter.getWordCount();
+        commentRepository.deleteRepliesByChapter(chapterId);
+        commentRepository.deleteCommentsByChapter(chapterId);
+        chapterRepository.delete(chapter);
+
+        if (chapter.isPublished()) {
+            novel.setLastUpdatedAt(chapterRepository.now());
+            novel.updateWordCount(-wordCount);
+            novel.updateChapterCount(-1);
+            user.updateWordCount(-wordCount);
+            user.updateChapterCount(-1);
+        }
+        novelRepository.save(novel);
+        topTenService.updateTopTen(novel);
+        recentNovelService.updateRecentNovel(novel);
+        userRepository.save(user);
+    }
+
+    @Transactional
+    public void deleteCommentById(User adminUser, long commentId) {
+        if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
+            throw new ApiException("NEED_PERMISSION_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
+        Comment comment = commentRepository.findById(commentId).orElse(null);
+        if (comment == null)
+            throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
+        Comment parent = comment.getParent();
+        if (parent != null)
+            parent.updateCommentCount(-1);
+        commentRepository.deleteCommentsByParentId(commentId);
+        commentRepository.delete(comment);
     }
 }

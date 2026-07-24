@@ -117,7 +117,7 @@ public class FileService {
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
                     return repoUrl + res.filename;
                 } catch (ParseException e) {
-                    throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("UNABLE_UPLOAD_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (ApiException e) {
@@ -154,7 +154,7 @@ public class FileService {
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
                     return repoUrl + res.filename;
                 } catch (ParseException e) {
-                    throw new ApiException("Cannot upload image", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("UNABLE_UPLOAD_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (ApiException e) {
@@ -188,7 +188,7 @@ public class FileService {
                     UploadResponse res = mapper.readValue(json, UploadResponse.class);
                     if (!res.success) throw new ApiException(res.message, HttpStatus.INTERNAL_SERVER_ERROR);
                 } catch (ParseException e) {
-                    throw new ApiException("Cannot delete image", HttpStatus.INTERNAL_SERVER_ERROR);
+                    throw new ApiException("UNABLE_DELETE_IMAGE", HttpStatus.INTERNAL_SERVER_ERROR);
                 }
             }
         } catch (ApiException e) {
@@ -202,7 +202,7 @@ public class FileService {
         try {
             BufferedImage image = ImageIO.read(file.getInputStream());
             if (image == null)
-                throw new ApiException("Invalid image file", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNSUPPORTED_FORMAT", HttpStatus.BAD_REQUEST);
 
             //BufferedImage image = cropToSquare(original);
             if (type == 1) {

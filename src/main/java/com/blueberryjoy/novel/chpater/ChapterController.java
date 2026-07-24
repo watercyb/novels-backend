@@ -56,7 +56,7 @@ public class ChapterController {
             if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_GET_CHAPTER", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             List<ChapterDTO> list = chapterService.getChapter(user, chapterId, adjacent, false);
             return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", list, null));
@@ -89,7 +89,7 @@ public class ChapterController {
             if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to get chapters right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_GET_CHAPTER", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             pageable = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize());
             Page<ChapterDTO> chapters = chapterService.getChapters(user, novelId, pageable, false);
@@ -107,7 +107,7 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to update chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_UPDATE_CHAPTER", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number novelId = (Number) body.get("novelId");
             Number chapterId = (Number) body.get("chapterId");
@@ -117,10 +117,10 @@ public class ChapterController {
                 throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             if (chapterId == null) {
                 ChapterDTO chapter = chapterService.createChapter(user, novelId.longValue(), title, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter created successfully", List.of(chapter), null));
+                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", List.of(chapter), null));
             } else {
                 ChapterDTO chapter = chapterService.updateChapter(user, novelId.longValue(), chapterId.longValue(), title, content);
-                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter updated successfully", List.of(chapter), null));
+                return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", List.of(chapter), null));
             }
         } catch (ApiException e) {
             throw e;
@@ -134,13 +134,13 @@ public class ChapterController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> deleteChapterById(@PathVariable Long chapterId) {
         try {
-            if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to delete chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_DELETE_CHAPTER", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             chapterService.deleteChapter(user, chapterId);
-            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter deleted successfully", null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -155,14 +155,14 @@ public class ChapterController {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to move chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_MOVE_CHAPTER", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             Number targetChapterId = (Number) body.get("targetChapterId");
             Number movingChapterId = (Number) body.get("movingChapterId");
             if (targetChapterId == null || movingChapterId == null)
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             ChapterDTO chapter = chapterService.move(user, targetChapterId.longValue(), movingChapterId.longValue());
-            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter moved successfully", List.of(chapter), null));
+            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", List.of(chapter), null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -174,13 +174,13 @@ public class ChapterController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> publishChapter(@PathVariable Long chapterId) {
         try {
-            if (chapterId == null) throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
-                throw new ApiException("Unable to publish chapter right now.", HttpStatus.BAD_REQUEST);
+                throw new ApiException("UNABLE_PUBLISH_CHAPTE", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             chapterService.publishChapter(user, chapterId);
-            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "Chapter published successfully", null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new ChapterResponse(true, "", null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

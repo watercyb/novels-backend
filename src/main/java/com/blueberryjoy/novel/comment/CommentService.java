@@ -60,7 +60,7 @@ public class CommentService {
     public Page<CommentDTO> getCommentsByChapter(long chapterId, Pageable pageable) {
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
         if (chapter == null)
-            throw new ApiException("Chapter not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
         Page<Comment> page = commentRepository.findCommentsByChapter(chapterId, pageable);
         return page.map(CommentDTO::new);
     }
@@ -76,12 +76,13 @@ public class CommentService {
     public void deleteComment(User user, long commentId) {
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if (comment == null || !Objects.equals(comment.getUser().getId(), user.getId()))
-            throw new ApiException("Comment not found", HttpStatus.BAD_REQUEST);
+            throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
         Comment parent = comment.getParent();
         if (parent != null)
             parent.updateCommentCount(-1);
         commentRepository.deleteCommentsByParentId(commentId);
-        commentRepository.deleteComment(commentId);
-        commentRepository.save(comment);
+        //commentRepository.deleteComment(commentId);
+        //commentRepository.save(comment);
+        commentRepository.delete(comment);
     }
 }
