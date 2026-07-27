@@ -116,8 +116,7 @@ public class AdminService {
         if (tagRepository.findByName(name).orElse(null) != null || tagRepository.findByNameCN(nameCN).orElse(null) != null)
             throw new ApiException("TAG_EXISTS", HttpStatus.BAD_REQUEST);
         Tag tag = tagRepository.findById(id).orElse(null);
-        if (tag == null)
-            throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
+        if (tag == null) throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
         if (name == null) name = tag.getName();
         if (nameCN == null) nameCN = tag.getNameCN();
         if (count == null) count = tag.getTagUsage();
@@ -130,8 +129,7 @@ public class AdminService {
     @Transactional
     public void deleteTag(long id) {
         Tag tag = tagRepository.findById(id).orElse(null);
-        if (tag == null)
-            throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
+        if (tag == null) throw new ApiException("UNABLE_FOUND_TAG", HttpStatus.BAD_REQUEST);
         tagRepository.delete(tag);
     }
 
@@ -205,11 +203,9 @@ public class AdminService {
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
             throw new ApiException("NEED_PERMISSION_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
         Comment comment = commentRepository.findById(commentId).orElse(null);
-        if (comment == null)
-            throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
+        if (comment == null) throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
         Comment parent = comment.getParent();
-        if (parent != null)
-            parent.updateCommentCount(-1);
+        if (parent != null) parent.updateCommentCount(-1);
         commentRepository.deleteCommentsByParentId(commentId);
         commentRepository.delete(comment);
     }
@@ -236,5 +232,19 @@ public class AdminService {
     public Page<UserDTO> getAllByRole(User.Role role, Pageable pageable) {
         Page<User> users = userRepository.getAllByRole(role, pageable);
         return users.map(UserDTO::new);
+    }
+
+    @Transactional
+    public UserDTO getUserById(long userId) {
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
+        return new UserDTO(user);
+    }
+
+    @Transactional
+    public UserDTO getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
+        return new UserDTO(user);
     }
 }
