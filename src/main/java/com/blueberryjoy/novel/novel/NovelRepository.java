@@ -380,4 +380,11 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
             LIMIT 10
             """, nativeQuery = true)
     List<Novel> queryRecent10Novels();
+
+    @Query("""
+        SELECT n.type AS type, COUNT(n.id) AS count
+        FROM Novel n
+        GROUP BY n.type
+    """)
+    List<TypeCount> countNovelsByType();
 }

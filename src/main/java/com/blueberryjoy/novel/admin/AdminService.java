@@ -12,8 +12,10 @@ import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
+import com.blueberryjoy.novel.novel.TypeCount;
 import com.blueberryjoy.novel.tag.Tag;
 import com.blueberryjoy.novel.tag.TagRepository;
+import com.blueberryjoy.novel.user.RoleCount;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserDTO;
 import com.blueberryjoy.novel.user.UserRepository;
@@ -246,5 +248,21 @@ public class AdminService {
         User user = userRepository.findByEmail(email).orElse(null);
         if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
         return new UserDTO(user);
+    }
+
+    private List<RoleCount> getUserCounts() {
+        return userRepository.countUsersByRole();
+    }
+
+    private List<TypeCount> getNovelCounts() {
+        return novelRepository.countNovelsByType();
+    }
+
+    private int getChapterCounts() {
+        return chapterRepository.countChapter();
+    }
+
+    public Counts getCounts() {
+        return new Counts(getUserCounts(), getNovelCounts(), getChapterCounts());
     }
 }

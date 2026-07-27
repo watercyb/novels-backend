@@ -123,4 +123,10 @@ public interface ChapterRepository extends JpaRepository<Chapter, Long> {
                 ORDER BY c.orderIndex ASC
             """)
     List<ChapterDTO> findChapterDTOByNovelId(@Param("novelId") Long novelId);
+
+    @Query("""
+                SELECT COUNT(c.id) AS count
+                FROM Chapter c
+            """)
+    int countChapter();
 }
