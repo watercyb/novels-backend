@@ -6,7 +6,7 @@ Delete /{novelId} (authenticated) PathVariable: novelId
 Put /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
 Delete /{novelId}/tags/{tagId} (authenticated) PathVariable: novelId, tagId
 Get /my-novels (authenticated) -> List<NovelDTO>
-Get /my-novels/{novelId} (authenticated) PathVariable: novelId -> List<NovelDTO>
+Get /my-novels/{novelId} (authenticated) PathVariable: novelId -> NovelDTO
 */
 
 package com.blueberryjoy.novel.novel;
@@ -188,8 +188,8 @@ public class NovelController {
             User user = (User) auth.getPrincipal();
             if (novelId == null)
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
-            NovelDTO novels = novelService.getMyNovel(user, novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "", novels, null, null));
+            NovelDTO novel = novelService.getMyNovel(user, novelId);
+            return ResponseEntity.status(HttpStatus.OK).body(new NovelResponse(true, "", novel, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

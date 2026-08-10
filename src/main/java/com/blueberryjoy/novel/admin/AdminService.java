@@ -1,6 +1,7 @@
 package com.blueberryjoy.novel.admin;
 
 import com.blueberryjoy.novel.chpater.Chapter;
+import com.blueberryjoy.novel.chpater.ChapterDTO;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
 import com.blueberryjoy.novel.comment.Comment;
 import com.blueberryjoy.novel.comment.CommentRepository;
@@ -11,6 +12,7 @@ import com.blueberryjoy.novel.homepage.RecentNovelService;
 import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
 import com.blueberryjoy.novel.novel.Novel;
+import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.NovelRepository;
 import com.blueberryjoy.novel.novel.TypeCount;
 import com.blueberryjoy.novel.tag.Tag;
@@ -28,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 public class AdminService {
@@ -169,6 +172,8 @@ public class AdminService {
             user.updateWordCount(-wordCount);
             userRepository.save(user);
         }
+
+        userRepository.delete(user);
     }
 
     @Transactional
@@ -264,5 +269,14 @@ public class AdminService {
 
     public Counts getCounts() {
         return new Counts(getUserCounts(), getNovelCounts(), getChapterCounts());
+    }
+
+    @Transactional
+    public NovelDTO getNovel(Long novelId) {
+        Novel novel = novelRepository.findById(novelId).orElse(null);
+        if (novel == null)
+            throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
+        List<ChapterDTO> chapters = chapterRepository.findChapterDTOByNovelId(novel.getId());
+        return new NovelDTO(novel, chapters);
     }
 }

@@ -7,12 +7,14 @@ Delete /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: use
 Delete /chapters/{chapterId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: chapterId
 Delete /comments/{commentId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: commentId
 Get /users RequestParam: id(Long), email(String), username(String), role(String), page(Integer), size(Integer) -> PageDTO<UserDTO>
+Get /novels/{novelId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: novelId -> NovelDTO
 */
 
 
 package com.blueberryjoy.novel.admin;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.PageDTO;
 import com.blueberryjoy.novel.user.User;
 import com.blueberryjoy.novel.user.UserDTO;
@@ -45,7 +47,7 @@ public class AdminController {
             User adminUser = (User) auth.getPrincipal();
             if (novelId == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
             adminService.deleteNovelById(adminUser, novelId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -66,7 +68,7 @@ public class AdminController {
                 throw new ApiException("UNABLE_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             adminService.updateUserRole(adminUser, userId, newRole);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -92,7 +94,7 @@ public class AdminController {
             } else {
                 adminService.updateTag(id.longValue(), name, nameCN, count);
             }
-            return ResponseEntity.ok().body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.ok().body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -111,7 +113,7 @@ public class AdminController {
             if (id == null)
                 throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             adminService.deleteTag(id.longValue());
-            return ResponseEntity.ok().body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.ok().body(new AdminResponse(true, "", null, null, null, null));
 
         } catch (ApiException e) {
             throw e;
@@ -129,7 +131,7 @@ public class AdminController {
                 throw new ApiException("UNABLE_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             adminService.deleteAccount(adminUser, userId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -147,7 +149,7 @@ public class AdminController {
             User adminUser = (User) auth.getPrincipal();
             if (chapterId == null) throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             adminService.deleteChapterById(adminUser, chapterId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -166,7 +168,7 @@ public class AdminController {
                 throw new ApiException("UNABLE_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
             adminService.deleteCommentById(adminUser, commentId);
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -181,10 +183,10 @@ public class AdminController {
         try {
             if (id != null) {
                 UserDTO user = adminService.getUserById(id);
-                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", user, null, null));
+                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", user, null, null, null));
             } else if (email != null) {
                 UserDTO user = adminService.getUserByEmail(email);
-                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", user, null, null));
+                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", user, null, null, null));
             } else {
                 if (page == null) page = 0;
                 if (size == null) size = 20;
@@ -204,7 +206,7 @@ public class AdminController {
                         users = adminService.searchByUsernameRole(username, roleEnum, pageable);
                     }
                 }
-                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, new PageDTO<>(users), null));
+                return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, new PageDTO<>(users), null, null));
             }
         } catch (ApiException e) {
             throw e;
@@ -218,7 +220,7 @@ public class AdminController {
     public ResponseEntity<?> getCounts() {
         try {
             Counts counts = adminService.getCounts();
-            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, counts));
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, counts, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {
@@ -226,6 +228,25 @@ public class AdminController {
         }
     }
 
-    record AdminResponse(boolean success, String message, UserDTO user, PageDTO<UserDTO> users, Counts counts) {
+    @GetMapping("/novels/{novelId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> getMyNovel(@PathVariable Long novelId) {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
+            if (novelId == null)
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+            NovelDTO novel = adminService.getNovel(novelId);
+            return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, novel));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    record AdminResponse(boolean success, String message, UserDTO user, PageDTO<UserDTO> users, Counts counts,
+                         NovelDTO novel) {
     }
 }
