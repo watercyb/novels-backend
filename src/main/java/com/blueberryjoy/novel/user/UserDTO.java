@@ -16,6 +16,7 @@ public class UserDTO {
     private final int novelCount;
     private final int chapterCount;
     private final int wordCount;
+    private final int unreadCount;
     private final List<NovelDTO> novels;
     private final User.Role role;
     private final LocalDateTime createdAt;
@@ -28,6 +29,7 @@ public class UserDTO {
         novelCount = user.getNovelCount();
         chapterCount = user.getChapterCount();
         wordCount = user.getWordCount();
+        unreadCount = user.getUnreadCount();
         novels = null;
         role = user.getRole();
         createdAt = user.getCreatedAt();
@@ -41,6 +43,7 @@ public class UserDTO {
         novelCount = user.getNovelCount();
         chapterCount = user.getChapterCount();
         wordCount = user.getWordCount();
+        unreadCount = user.getUnreadCount();
         this.novels = novels.stream().map(NovelDTO::new).toList();
         role = user.getRole();
         createdAt = user.getCreatedAt();

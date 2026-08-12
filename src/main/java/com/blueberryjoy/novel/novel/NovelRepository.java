@@ -3,9 +3,11 @@ package com.blueberryjoy.novel.novel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface NovelRepository extends JpaRepository<Novel, Long> {
@@ -382,9 +384,64 @@ public interface NovelRepository extends JpaRepository<Novel, Long> {
     List<Novel> queryRecent10Novels();
 
     @Query("""
-        SELECT n.type AS type, COUNT(n.id) AS count
-        FROM Novel n
-        GROUP BY n.type
-    """)
+                SELECT n.type AS type, COUNT(n.id) AS count
+                FROM Novel n
+                GROUP BY n.type
+            """)
     List<TypeCount> countNovelsByType();
+
+    @Modifying
+    @Query("""
+                UPDATE Novel n
+                SET n.likeCount = n.likeCount + :n
+                WHERE n.id = :novelId
+            """)
+    void updateLikeCount(
+            @Param("novelId") Long novelId,
+            @Param("n") int n
+    );
+
+    @Modifying
+    @Query("""
+                UPDATE Novel n
+                SET n.lastUpdatedAt = :lastUpdatedAt
+                WHERE n.id = :novelId
+            """)
+    void updateLastUpdatedAt(
+            @Param("novelId") Long novelId,
+            @Param("lastUpdatedAt") LocalDateTime lastUpdatedAt
+    );
+
+    @Modifying
+    @Query("""
+                UPDATE Novel n
+                SET n.wordCount = n.wordCount + :n
+                WHERE n.id = :novelId
+            """)
+    void updateWordCount(
+            @Param("novelId") Long novelId,
+            @Param("n") int n
+    );
+
+    @Modifying
+    @Query("""
+                UPDATE Novel n
+                SET n.chapterCount = n.chapterCount + :n
+                WHERE n.id = :novelId
+            """)
+    void updateChapterCount(
+            @Param("novelId") Long novelId,
+            @Param("n") int n
+    );
+
+    @Modifying
+    @Query("""
+                UPDATE Novel n
+                SET n.lastChapterTitle = :title
+                WHERE n.id = :novelId
+            """)
+    void updateLastChapterTitle(
+            @Param("novelId") Long novelId,
+            @Param("title") String title
+    );
 }

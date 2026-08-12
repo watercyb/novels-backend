@@ -34,8 +34,7 @@ public class LikeService {
         like.setUser(user);
         like.setNovel(novel);
         likeRepository.save(like);
-        novel.updateLikeCount(1);
-        novelRepository.save(novel);
+        novelRepository.updateLikeCount(novelId, 1);
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
     }
@@ -47,8 +46,7 @@ public class LikeService {
             throw new ApiException("UNABLE_UNLIKE_NOVEL", HttpStatus.BAD_REQUEST);
         Novel novel = like.getNovel();
         likeRepository.delete(like);
-        novel.updateLikeCount(-1);
-        novelRepository.save(novel);
+        novelRepository.updateLikeCount(novelId, -1);
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
     }

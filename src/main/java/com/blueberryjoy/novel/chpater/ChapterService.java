@@ -131,10 +131,10 @@ public class ChapterService {
             chapter.setWordCount(wordCountNew);
             chapterRepository.save(chapter);
             if (chapter.isPublished()) {
-                novel.updateWordCount(wordCountNew - wordCountOld);
-                user.updateWordCount(wordCountNew - wordCountOld);
-                novel.setLastUpdatedAt(chapter.getUpdatedAt());
-                novel.setLastChapterTitle(chapter.getTitle());
+                novelRepository.updateWordCount(novelId, wordCountNew - wordCountOld);
+                novelRepository.updateLastUpdatedAt(novelId, chapter.getUpdatedAt());
+                novelRepository.updateLastChapterTitle(novelId, chapter.getTitle());
+                userRepository.updateWordCount(user.getId(), wordCountNew - wordCountOld);
             }
         }
         novel.setLastChapterTitle(chapter.getTitle());
@@ -214,16 +214,14 @@ public class ChapterService {
         chapterRepository.delete(chapter);
 
         if (chapter.isPublished()) {
-            novel.setLastUpdatedAt(chapterRepository.now());
-            novel.updateWordCount(-wordCount);
-            novel.updateChapterCount(-1);
-            user.updateWordCount(-wordCount);
-            user.updateChapterCount(-1);
+            novelRepository.updateLastUpdatedAt(novel.getId(), chapterRepository.now());
+            novelRepository.updateWordCount(novel.getId(), -wordCount);
+            novelRepository.updateChapterCount(novel.getId(), -1);
+            userRepository.updateWordCount(user.getId(), -wordCount);
+            userRepository.updateChapterCount(user.getId(), -1);
         }
-        novelRepository.save(novel);
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
-        userRepository.save(user);
     }
 
     private static int countWords(String text, Locale locale) {
@@ -287,16 +285,14 @@ public class ChapterService {
         chapter.setPublished(true);
         chapterRepository.save(chapter);
         int wordCount = chapter.getWordCount();
-        novel.updateChapterCount(1);
-        novel.updateWordCount(wordCount);
-        novel.setLastUpdatedAt(chapter.getUpdatedAt());
-        novel.setLastChapterTitle(chapter.getTitle());
-        novelRepository.save(novel);
+        novelRepository.updateChapterCount(novel.getId(), 1);
+        novelRepository.updateWordCount(novel.getId(), wordCount);
+        novelRepository.updateLastUpdatedAt(novel.getId(), chapter.getUpdatedAt());
+        novelRepository.updateLastChapterTitle(novel.getId(), chapter.getTitle());
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
-        user.updateChapterCount(1);
-        user.updateWordCount(wordCount);
-        userRepository.save(user);
+        userRepository.updateChapterCount(user.getId(), 1);
+        userRepository.updateWordCount(user.getId(), wordCount);
     }
 
     public String sanitizeHtml(String rawHtml) {

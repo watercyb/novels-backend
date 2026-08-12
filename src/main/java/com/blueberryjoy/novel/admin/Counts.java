@@ -12,7 +12,7 @@ public class Counts {
     public long superAdminCount = 0;
     public long originalCount = 0;
     public long translationCount = 0;
-    public long chapterCount;
+    public final long chapterCount;
 
     public Counts(List<RoleCount> roleCounts, List<TypeCount> typeCounts, long chapterCount) {
         for (RoleCount roleCount : roleCounts) {

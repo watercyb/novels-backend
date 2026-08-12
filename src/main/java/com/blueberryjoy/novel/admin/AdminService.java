@@ -30,7 +30,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class AdminService {
@@ -83,10 +82,9 @@ public class AdminService {
         novelRepository.delete(novel);
         topTenService.removeFromTopTen(novel);
         recentNovelService.removeFromRecentNovels(novel);
-        user.updateNovelCount(-1);
-        user.updateChapterCount(-chapterCount);
-        user.updateWordCount(-wordCount);
-        userRepository.save(user);
+        userRepository.updateNovelCount(user.getId(), -1);
+        userRepository.updateChapterCount(user.getId(), -chapterCount);
+        userRepository.updateWordCount(user.getId(), -wordCount);
     }
 
     @Transactional
@@ -167,10 +165,9 @@ public class AdminService {
             novelRepository.delete(novel);
             topTenService.removeFromTopTen(novel);
             recentNovelService.removeFromRecentNovels(novel);
-            user.updateNovelCount(-1);
-            user.updateChapterCount(-chapterCount);
-            user.updateWordCount(-wordCount);
-            userRepository.save(user);
+            userRepository.updateNovelCount(user.getId(), -1);
+            userRepository.updateChapterCount(user.getId(), -chapterCount);
+            userRepository.updateWordCount(user.getId(), -wordCount);
         }
 
         userRepository.delete(user);
@@ -193,16 +190,14 @@ public class AdminService {
         chapterRepository.delete(chapter);
 
         if (chapter.isPublished()) {
-            novel.setLastUpdatedAt(chapterRepository.now());
-            novel.updateWordCount(-wordCount);
-            novel.updateChapterCount(-1);
-            user.updateWordCount(-wordCount);
-            user.updateChapterCount(-1);
+            novelRepository.updateLastUpdatedAt(novel.getId(), chapterRepository.now());
+            novelRepository.updateWordCount(novel.getId(), -wordCount);
+            novelRepository.updateChapterCount(novel.getId(), -1);
+            userRepository.updateWordCount(user.getId(), -wordCount);
+            userRepository.updateChapterCount(user.getId(), -1);
         }
-        novelRepository.save(novel);
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
-        userRepository.save(user);
     }
 
     @Transactional

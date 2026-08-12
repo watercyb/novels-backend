@@ -70,4 +70,15 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
                 WHERE ch.novel_id = :novelId
             """, nativeQuery = true)
     void deleteCommentsByNovel(@Param("novelId") Long novelId);
+
+    @Modifying
+    @Query("""
+                UPDATE Comment c
+                SET c.commentCount = c.commentCount + :n
+                WHERE c.id = :commentId
+            """)
+    void updateCommentCount(
+            @Param("commentId") Long commentId,
+            @Param("n") int n
+    );
 }

@@ -32,8 +32,7 @@ public class CommentService {
             if (parent == null)
                 throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
             comment.setParent(parent);
-            parent.updateCommentCount(1);
-            commentRepository.save(parent);
+            commentRepository.updateCommentCount(parentId, 1);
         } else {
             long chapterId = chapterIdNum.longValue();
             Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
@@ -79,10 +78,8 @@ public class CommentService {
             throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
         Comment parent = comment.getParent();
         if (parent != null)
-            parent.updateCommentCount(-1);
+            commentRepository.updateCommentCount(parent.getId(), -1);
         commentRepository.deleteCommentsByParentId(commentId);
-        //commentRepository.deleteComment(commentId);
-        //commentRepository.save(comment);
         commentRepository.delete(comment);
     }
 }

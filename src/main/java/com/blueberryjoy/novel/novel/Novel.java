@@ -7,7 +7,6 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -102,18 +101,6 @@ public class Novel {
     public void removeTag(Tag tag) {
         this.tags.remove(tag);
         tag.getNovels().remove(this);
-    }
-
-    public void updateLikeCount(int n) {
-        likeCount += n;
-    }
-
-    public void updateChapterCount(int n) {
-        chapterCount += n;
-    }
-
-    public void updateWordCount(int n) {
-        wordCount += n;
     }
 
     public enum Type {

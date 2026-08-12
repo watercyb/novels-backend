@@ -36,8 +36,4 @@ public class Tag {
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)
     private Set<Novel> novels = new HashSet<>();
-
-    public void updateCount(int count) {
-        tagUsage += count;
-    }
 }

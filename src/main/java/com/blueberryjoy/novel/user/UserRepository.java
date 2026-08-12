@@ -3,6 +3,7 @@ package com.blueberryjoy.novel.user;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -49,4 +50,36 @@ public interface UserRepository extends JpaRepository<User, Long> {
                 GROUP BY u.role
             """)
     List<RoleCount> countUsersByRole();
+
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.novelCount = u.novelCount + :n
+                WHERE u.id = :userId
+            """)
+    void updateNovelCount(@Param("userId") Long userId, @Param("n") int n);
+
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.chapterCount = u.chapterCount + :n
+                WHERE u.id = :userId
+            """)
+    void updateChapterCount(@Param("userId") Long userId, @Param("n") int n);
+
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.wordCount = u.wordCount + :n
+                WHERE u.id = :userId
+            """)
+    void updateWordCount(@Param("userId") Long userId, @Param("n") int n);
+
+    @Modifying
+    @Query("""
+                UPDATE User u
+                SET u.unreadCount = u.unreadCount + :n
+                WHERE u.id = :userId
+            """)
+    void updateUnreadCount(@Param("userId") Long userId, @Param("n") int n);
 }

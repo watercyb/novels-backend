@@ -32,14 +32,17 @@ public class User {
     @Column(name = "avatar_url", length = 2048)
     private String avatarUrl;
 
-    @Column(name = "novel_count", length = 2048)
+    @Column(name = "novel_count", nullable = false)
     private int novelCount;
 
-    @Column(name = "chapter_count", length = 2048)
+    @Column(name = "chapter_count", nullable = false)
     private int chapterCount;
 
-    @Column(name = "word_count", length = 2048)
+    @Column(name = "word_count", nullable = false)
     private int wordCount;
+
+    @Column(name = "unread_count", nullable = false)
+    private int unreadCount;
 
     @Enumerated(EnumType.STRING)
     private Role role;
@@ -47,18 +50,6 @@ public class User {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-
-    public void updateNovelCount(int n) {
-        novelCount += n;
-    }
-
-    public void updateChapterCount(int n) {
-        chapterCount += n;
-    }
-
-    public void updateWordCount(int n) {
-        wordCount += n;
-    }
 
     public enum Role {
         USER, AUTHOR, ADMIN, SUPERADMIN;

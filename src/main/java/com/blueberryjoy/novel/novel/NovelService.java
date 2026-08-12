@@ -101,8 +101,7 @@ public class NovelService {
         novel = novelRepository.save(novel);
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
-        user.updateNovelCount(1);
-        userRepository.save(user);
+        userRepository.updateNovelCount(user.getId(), 1);
 
         return new NovelDTO(novel);
     }
@@ -115,8 +114,7 @@ public class NovelService {
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("NEED_PERMISSION_EDIT_NOVEL", HttpStatus.BAD_REQUEST);
         if (!novel.getTags().contains(tag)) {
-            tag.updateCount(1);
-            tagRepository.save(tag);
+            tagRepository.updateTagUsage(tagId, 1);
             novel.addTag(tag);
         }
     }
@@ -129,8 +127,7 @@ public class NovelService {
         if (!Objects.equals(novel.getAuthor().getId(), user.getId()))
             throw new ApiException("NEED_PERMISSION_EDIT_NOVEL", HttpStatus.BAD_REQUEST);
         if (novel.getTags().contains(tag)) {
-            tag.updateCount(-1);
-            tagRepository.save(tag);
+            tagRepository.updateTagUsage(tagId, -1);
             novel.removeTag(tag);
         }
     }
@@ -267,10 +264,9 @@ public class NovelService {
         novelRepository.delete(novel);
         topTenService.removeFromTopTen(novel);
         recentNovelService.removeFromRecentNovels(novel);
-        user.updateNovelCount(-1);
-        user.updateChapterCount(-chapterCount);
-        user.updateWordCount(-wordCount);
-        userRepository.save(user);
+        userRepository.updateNovelCount(user.getId(), -1);
+        userRepository.updateChapterCount(user.getId(), -chapterCount);
+        userRepository.updateWordCount(user.getId(), -wordCount);
     }
 
     @Transactional

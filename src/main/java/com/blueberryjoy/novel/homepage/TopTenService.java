@@ -30,7 +30,7 @@ public class TopTenService {
     @Transactional(readOnly = true)
     public void init() {
         WeeklyViewData weeklyViewData = readFile();
-        Map<Long, int[]> weeklyViews = weeklyViewData.getWeeklyViews();
+        Map<Long, int[]> weeklyViews = weeklyViewData.weeklyViews();
         PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(l -> l[1]));
         for (Map.Entry<Long, int[]> entry : weeklyViews.entrySet()) {
             long id = entry.getKey();
@@ -61,8 +61,8 @@ public class TopTenService {
         ConcurrentHashMap<Long, LongAdder> oldMap = todayCounts;
         todayCounts = new ConcurrentHashMap<>();
         WeeklyViewData weeklyViewData = readFile();
-        int currentDayIndex = (weeklyViewData.getCurrentDayIndex() + 1) % 7;
-        Map<Long, int[]> weeklyViews = weeklyViewData.getWeeklyViews();
+        int currentDayIndex = (weeklyViewData.currentDayIndex() + 1) % 7;
+        Map<Long, int[]> weeklyViews = weeklyViewData.weeklyViews();
         Map<Long, int[]> newWeeklyViews = new HashMap<>();
         PriorityQueue<long[]> pq = new PriorityQueue<>(Comparator.comparingLong(l -> l[1]));
         for (Map.Entry<Long, int[]> entry : weeklyViews.entrySet()) {
