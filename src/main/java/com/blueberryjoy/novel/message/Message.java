@@ -45,7 +45,7 @@ public class Message {
     private LocalDateTime createdAt;
 
     public enum MessageType {
-        SYSTEM, USER, NOTIFICATION, CHAPTER_COMMENT, COMMENT_REPLIED, UPDATE_ROLE_REQUEST;
+        SYSTEM, USER, NOTIFICATION, CHAPTER_COMMENT, COMMENT_REPLIED, UPDATE_ROLE_REQUEST, DELETION;
 
         public static MessageType getType(String value) {
             if (value == null) return null;

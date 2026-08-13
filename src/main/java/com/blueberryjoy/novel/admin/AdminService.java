@@ -11,6 +11,10 @@ import com.blueberryjoy.novel.file.FileService;
 import com.blueberryjoy.novel.homepage.RecentNovelService;
 import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
+import com.blueberryjoy.novel.message.Message;
+import com.blueberryjoy.novel.message.MessageDTO;
+import com.blueberryjoy.novel.message.MessageRepository;
+import com.blueberryjoy.novel.message.MessageService;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelDTO;
 import com.blueberryjoy.novel.novel.NovelRepository;
@@ -56,9 +60,13 @@ public class AdminService {
     private RecentNovelService recentNovelService;
     @Autowired
     private FileService fileService;
+    @Autowired
+    private MessageRepository messageRepository;
+    @Autowired
+    private MessageService messageService;
 
     @Transactional
-    public void deleteNovelById(User adminUser, long novelId) {
+    public void deleteNovelById(User adminUser, long novelId, String reason) {
         Novel novel = novelRepository.findById(novelId).orElse(null);
         if (novel == null) throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
@@ -85,6 +93,7 @@ public class AdminService {
         userRepository.updateNovelCount(user.getId(), -1);
         userRepository.updateChapterCount(user.getId(), -chapterCount);
         userRepository.updateWordCount(user.getId(), -wordCount);
+        messageService.createDeletedMessage(user, "NOVEL", novel.getTitle(), reason);
     }
 
     @Transactional
@@ -174,7 +183,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteChapterById(User adminUser, long chapterId) {
+    public void deleteChapterById(User adminUser, long chapterId, String reason) {
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
             throw new ApiException("NEED_PERMISSION_DELETE_CHAPTER", HttpStatus.BAD_REQUEST);
         Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
@@ -198,16 +207,26 @@ public class AdminService {
         }
         topTenService.updateTopTen(novel);
         recentNovelService.updateRecentNovel(novel);
+        messageService.createDeletedMessage(user, "CHAPTER", novel.getTitle() + " -> " + chapter.getTitle(), reason);
     }
 
     @Transactional
-    public void deleteCommentById(User adminUser, long commentId) {
+    public void deleteCommentById(User adminUser, long commentId, String reason) {
         if (adminUser.getRole() != User.Role.ADMIN && adminUser.getRole() != User.Role.SUPERADMIN)
             throw new ApiException("NEED_PERMISSION_DELETE_COMMENT", HttpStatus.BAD_REQUEST);
         Comment comment = commentRepository.findById(commentId).orElse(null);
         if (comment == null) throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
         Comment parent = comment.getParent();
-        if (parent != null) parent.updateCommentCount(-1);
+        if (parent != null) {
+            parent.updateCommentCount(-1);
+            Chapter chapter = parent.getChapter();
+            Novel novel = chapter.getNovel();
+            messageService.createDeletedMessage(comment.getUser(), "REPLY", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + parent.getContent() + " -> " + comment.getContent(), reason);
+        } else {
+            Chapter chapter = comment.getChapter();
+            Novel novel = chapter.getNovel();
+            messageService.createDeletedMessage(comment.getUser(), "COMMENT", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + comment.getContent(), reason);
+        }
         commentRepository.deleteCommentsByParentId(commentId);
         commentRepository.delete(comment);
     }
@@ -273,5 +292,40 @@ public class AdminService {
             throw new ApiException("UNABLE_FOUND_NOVEL", HttpStatus.BAD_REQUEST);
         List<ChapterDTO> chapters = chapterRepository.findChapterDTOByNovelId(novel.getId());
         return new NovelDTO(novel, chapters);
+    }
+
+    @Transactional
+    public void readMessage(Long messageId) {
+        Message message = messageRepository.findById(messageId).orElse(null);
+        if (message == null)
+            throw new ApiException("UNABLE_FOUND_MESSAGE", HttpStatus.BAD_REQUEST);
+        if (message.getRecipientId() != -1)
+            throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+        if (!message.isRead()) {
+            message.setRead(true);
+            messageRepository.save(message);
+        }
+    }
+
+    @Transactional
+    public void deleteMessage(Long messageId) {
+        Message message = messageRepository.findById(messageId).orElse(null);
+        if (message != null && message.getRecipientId() != -1)
+            throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+        if (message != null)
+            messageRepository.delete(message);
+    }
+
+    @Transactional
+    public MessageDTO getMessage(Long messageId) {
+        Message message = messageRepository.findById(messageId).orElse(null);
+        if (message == null || message.getRecipientId() != -1)
+            throw new ApiException("UNABLE_FOUND_MESSAGE", HttpStatus.BAD_REQUEST);
+        return messageService.getMessageByType(message);
+    }
+
+    @Transactional
+    public int getUnreadCount() {
+        return messageRepository.countUnreadSystemMessages();
     }
 }
