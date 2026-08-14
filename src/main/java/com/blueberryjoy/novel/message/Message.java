@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Table(name = "messages", indexes = {
         @Index(name = "idx_message_sender", columnList = "sender_id"),
         @Index(name = "idx_message_recipient", columnList = "recipient_id"),
-        @Index(name = "idx_message_sender_recipient", columnList = "sender_id, recipient_id"),
+        @Index(name = "idx_message_sender_recipient_type", columnList = "sender_id, recipient_id, type"),
         @Index(name = "idx_message_recipient_read", columnList = "recipient_id, is_read")
 })
 @Getter
@@ -45,7 +45,7 @@ public class Message {
     private LocalDateTime createdAt;
 
     public enum MessageType {
-        SYSTEM, USER, NOTIFICATION, CHAPTER_COMMENT, COMMENT_REPLIED, UPDATE_ROLE_REQUEST, DELETION;
+        SYSTEM /*All content are internal translation key*/, USER, CHAPTER_COMMENT, COMMENT_REPLIED, UPDATE_ROLE_REQUEST, DELETION;
 
         public static MessageType getType(String value) {
             if (value == null) return null;

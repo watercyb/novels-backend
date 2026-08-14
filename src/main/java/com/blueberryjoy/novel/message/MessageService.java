@@ -31,32 +31,15 @@ public class MessageService {
     private CommentRepository commentRepository;
     ObjectMapper objectMapper = new ObjectMapper();
 
-    @Transactional
-    public void createMessage(long senderId, long recipientId, String messageContent, String messageType) {
-        Message.MessageType type = Message.MessageType.getType(messageType);
-        if (type == null || (senderId != -1 && !userRepository.existsById(senderId)) || (recipientId != -1 && !userRepository.existsById(recipientId)))
-            throw new ApiException("INVALID_INPUT", HttpStatus.BAD_REQUEST);
-        Message message = new Message();
-        message.setSenderId(senderId);
-        message.setRecipientId(recipientId);
-        message.setMessageContent(messageContent);
-        message.setType(type);
-        messageRepository.save(message);
-    }
-
     //CHAPTER_COMMENT
     @Transactional
-    public void createChapterCommentMessage(long recipientId, long user, long chapterId, long commentId) {
-        if (!userRepository.existsById(recipientId) || !userRepository.existsById(user) || !chapterRepository.existsById(chapterId) || !commentRepository.existsById(commentId))
-            throw new ApiException("INVALID_INPUT", HttpStatus.BAD_REQUEST);
-
-        ChapterCommentMessage data = new ChapterCommentMessage(user, chapterId, commentId);
+    public void createChapterCommentMessage(User recipient, User user, Chapter chapter, Comment comment) {
+        ChapterCommentMessage data = new ChapterCommentMessage(user.getId(), chapter.getId(), comment.getId());
         String messageContent = objectMapper.writeValueAsString(data);
-
         Message message = new Message();
         message.setSenderId(-1L);
-        message.setRecipientId(recipientId);
-        userRepository.updateUnreadCount(recipientId, 1);
+        message.setRecipientId(recipient.getId());
+        userRepository.updateUnreadCount(recipient.getId(), 1);
         message.setMessageContent(messageContent);
         message.setType(Message.MessageType.getType("CHAPTER_COMMENT"));
         messageRepository.save(message);
@@ -74,17 +57,13 @@ public class MessageService {
 
     //COMMENT_REPLIED
     @Transactional
-    public void createCommentRepliedMessage(long recipientId, long user, long parentId, long replyId) {
-        if (!userRepository.existsById(recipientId) || !userRepository.existsById(user) || !commentRepository.existsById(parentId) || !commentRepository.existsById(replyId))
-            throw new ApiException("INVALID_INPUT", HttpStatus.BAD_REQUEST);
-
-        CommentRepliedMessage data = new CommentRepliedMessage(user, parentId, replyId);
+    public void createCommentRepliedMessage(User recipient, User user, Comment parent, Comment reply) {
+        CommentRepliedMessage data = new CommentRepliedMessage(user.getId(), parent.getId(), reply.getId());
         String messageContent = objectMapper.writeValueAsString(data);
-
         Message message = new Message();
         message.setSenderId(-1L);
-        message.setRecipientId(recipientId);
-        userRepository.updateUnreadCount(recipientId, 1);
+        message.setRecipientId(recipient.getId());
+        userRepository.updateUnreadCount(recipient.getId(), 1);
         message.setMessageContent(messageContent);
         message.setType(Message.MessageType.getType("COMMENT_REPLIED"));
         messageRepository.save(message);
@@ -102,28 +81,23 @@ public class MessageService {
 
     //UPDATE_ROLE_REQUEST
     @Transactional
-    public void createUpdateRoleRequestMessage(long senderId, long user) {
-        if (!userRepository.existsById(senderId) || !userRepository.existsById(user))
-            throw new ApiException("INVALID_INPUT", HttpStatus.BAD_REQUEST);
+    public void createUpdateRoleRequestMessage(User sender) {
         Message message = new Message();
-        message.setSenderId(senderId);
+        message.setSenderId(sender.getId());
         message.setRecipientId(-1L);
         message.setType(Message.MessageType.getType("UPDATE_ROLE_REQUEST"));
+        message.setMessageContent("");
         messageRepository.save(message);
     }
 
     public MessageDTO getUpdateRoleRequestMessage(Message message) {
-        User user = userRepository.findById(message.getSenderId()).orElse(null);
-        UpdateRoleRequestMessageDTO data = new UpdateRoleRequestMessageDTO(user);
-        String messageContent = objectMapper.writeValueAsString(data);
-        return getMessageDTO(message, messageContent);
+        return getMessageDTO(message, null);
     }
 
     public MessageDTO getMessageByType(Message message) {
         return switch (message.getType()) {
             case SYSTEM -> getSystemMessage(message);
             case USER -> getUserMessage(message);
-            case NOTIFICATION -> getNotificationMessage(message);
             case CHAPTER_COMMENT -> getChapterCommentMessage(message);
             case COMMENT_REPLIED -> getCommentRepliedMessage(message);
             case UPDATE_ROLE_REQUEST -> getUpdateRoleRequestMessage(message);
@@ -133,7 +107,7 @@ public class MessageService {
 
     private MessageDTO getMessageDTO(Message message, String messageContent) {
         User user = userRepository.findById(message.getSenderId()).orElse(null);
-        UserDTO sender = user != null ? sender = new UserDTO(user) : null;
+        UserDTO sender = user != null ? new UserDTO(user) : null;
         if (messageContent == null) {
             return new MessageDTO(message, sender);
         } else {
@@ -146,10 +120,6 @@ public class MessageService {
     }
 
     public MessageDTO getUserMessage(Message message) {
-        return getMessageDTO(message, null);
-    }
-
-    public MessageDTO getNotificationMessage(Message message) {
         return getMessageDTO(message, null);
     }
 
@@ -209,5 +179,28 @@ public class MessageService {
         if (message == null || !user.getId().equals(message.getRecipientId()))
             throw new ApiException("UNABLE_FOUND_MESSAGE", HttpStatus.BAD_REQUEST);
         return getMessageByType(message);
+    }
+
+    //SYSTEM
+    @Transactional
+    public void createSystemMessage(User recipient, String content) {
+        Message message = new Message();
+        message.setSenderId(-1L);
+        message.setRecipientId(recipient.getId());
+        userRepository.updateUnreadCount(recipient.getId(), 1);
+        message.setMessageContent(content);
+        message.setType(Message.MessageType.getType("SYSTEM"));
+        messageRepository.save(message);
+    }
+
+    //USER
+    @Transactional
+    public void createUserMessage(User sender, User recipient, String content) {
+        Message message = new Message();
+        message.setSenderId(sender.getId());
+        message.setRecipientId(recipient.getId());
+        message.setType(Message.MessageType.getType("USER"));
+        message.setMessageContent(content);
+        messageRepository.save(message);
     }
 }

@@ -9,6 +9,7 @@ Post /forgot_password form-data: {email} -> UserDTO
 Post /reset_password form-data: {email, code, password}
 Get / (authenticated) -> UserDTO
 Get /{chapterId} PathVariable: chapterId -> UserDTO
+Post /update_role
 */
 
 package com.blueberryjoy.novel.user;
@@ -51,6 +52,8 @@ public class UserController {
     private MailService mailService;
     @Autowired
     private ResetPasswordCodeStore resetPasswordCodeStore;
+    @Autowired
+    private UserRepository userRepository;
     @Value("${BASE_URL}")
     private String url;
 
@@ -166,7 +169,7 @@ public class UserController {
                 user.setAvatarUrl(fileName);
             }
             if (username != null && !username.isEmpty()) user.setUsername(username);
-            userService.updateUser(user);
+            userRepository.save(user);
             return ResponseEntity.ok().body(new UserResponse(true, "Uploaded successfully", new UserDTO(user)));
         } catch (ApiException e) {
             throw e;
@@ -268,6 +271,23 @@ public class UserController {
             if (authorId == null) throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
             UserDTO user = userService.getAuthor(authorId);
             return ResponseEntity.ok().body(new UserResponse(true, null, user));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/update_role")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> updateRole() {
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            userService.requestUpdateUser(user);
+            return ResponseEntity.ok().body(new UserResponse(true, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

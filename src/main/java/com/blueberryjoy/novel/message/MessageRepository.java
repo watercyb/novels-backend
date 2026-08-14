@@ -36,7 +36,14 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     @Query("""
                 SELECT COUNT(m.id) AS count
                 FROM Message m
-                WHERE m.recipientId = -1
+                WHERE m.recipientId = -1 and m.read=false
             """)
     int countUnreadSystemMessages();
+
+    @Query("""
+                SELECT COUNT(m.id) AS count
+                FROM Message m
+                WHERE m.senderId = :userId and m.recipientId = -1 and type='UPDATE_ROLE_REQUEST'
+            """)
+    int checkUpdateRoleRequest(@Param("userId") Long userId);
 }

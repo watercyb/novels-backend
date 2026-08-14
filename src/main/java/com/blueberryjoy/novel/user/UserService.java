@@ -1,6 +1,8 @@
 package com.blueberryjoy.novel.user;
 
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.message.MessageRepository;
+import com.blueberryjoy.novel.message.MessageService;
 import com.blueberryjoy.novel.novel.Novel;
 import com.blueberryjoy.novel.novel.NovelRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,10 @@ public class UserService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private NovelRepository novelRepository;
+    @Autowired
+    private MessageRepository messageRepository;
+    @Autowired
+    private MessageService messageService;
 
 
     public User findUserByEmail(String email) {
@@ -53,8 +59,11 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUser(User user) {
-        userRepository.save(user);
+    public void requestUpdateUser(User user) {
+        if (user.getRole() != User.Role.USER)
+            throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+        if (messageRepository.checkUpdateRoleRequest(user.getId()) == 0)
+            messageService.createUpdateRoleRequestMessage(user);
     }
 
     public UserDTO getAuthor(Long authorId) {

@@ -108,6 +108,7 @@ public class AdminService {
             throw new ApiException("NEED_PERMISSION_UPDATE_ROLE", HttpStatus.BAD_REQUEST);
         user.setRole(newRole);
         userRepository.save(user);
+        messageService.createSystemMessage(user, "UPDATE_ROLE_" + newRole);
     }
 
 
