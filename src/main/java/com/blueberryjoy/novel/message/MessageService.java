@@ -195,10 +195,14 @@ public class MessageService {
 
     //USER
     @Transactional
-    public void createUserMessage(User sender, User recipient, String content) {
+    public void createUserMessage(Long senderId, Long recipientId, String content) {
+        if (recipientId != -1 && !userRepository.existsById(recipientId))
+            throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
         Message message = new Message();
-        message.setSenderId(sender.getId());
-        message.setRecipientId(recipient.getId());
+        message.setSenderId(senderId);
+        message.setRecipientId(recipientId);
+        if (recipientId != -1)
+            userRepository.updateUnreadCount(recipientId, 1);
         message.setType(Message.MessageType.getType("USER"));
         message.setMessageContent(content);
         messageRepository.save(message);

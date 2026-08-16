@@ -118,4 +118,52 @@ public class MailService {
                 """.formatted(username, link, link, link);
         mailtrap.sendEmail(email, "Reset Your Password", body, "reset_password.html");
     }
+
+    public void sendAccountDeletedMail(String email, String username, String reason) {
+        String body = """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                </head>
+                <body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+                    <table width="100%%" cellpadding="0" cellspacing="0">
+                        <tr>
+                            <td align="center" style="padding:40px 0;">
+                                <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;padding:40px;">
+                                    <tr>
+                                        <td align="center">
+                                            <h1 style="margin:0;color:#333333;">Account Deleted</h1>
+                                        </td>
+                                    </tr>
+                
+                                    <tr>
+                                        <td style="padding-top:30px;color:#555555;font-size:16px;line-height:1.6;">
+                                            Hi %s,
+                                            <br><br>
+                                            Your Novels account has been deleted.
+                                            <br><br>
+                                            <strong>Reason:</strong>
+                                            <br>
+                                            %s
+                                            <br><br>
+                                            Your account and associated content are no longer available.
+                                            If you believe this action was taken in error, please contact the Novels administration team.
+                                        </td>
+                                    </tr>
+                
+                                    <tr>
+                                        <td style="padding-top:40px;color:#999999;font-size:14px;">
+                                            — The Novels Team
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </body>
+                </html>
+                """.formatted(username, reason);
+        mailtrap.sendEmail(email, "Your Novels Account Has Been Deleted", body, "account-deleted.html");
+    }
 }

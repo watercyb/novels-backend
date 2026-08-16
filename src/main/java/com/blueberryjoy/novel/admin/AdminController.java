@@ -3,7 +3,7 @@ Delete /novels/{novelId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: 
 Post /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId, JSON: {role}
 Post /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id, name, nameCN, count}
 Delete /tags (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {id}
-Delete /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId
+Delete /user/{userId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: userId, RequestParam: reason(String)
 Delete /chapters/{chapterId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: chapterId, RequestParam: reason(String)
 Delete /comments/{commentId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: commentId, RequestParam: reason(String)
 Get /users RequestParam: id(Long), email(String), username(String), role(String), page(Integer), size(Integer) -> PageDTO<UserDTO>
@@ -13,6 +13,7 @@ Get /messages (hasAnyAuthority('ADMIN', 'SUPERADMIN')) RequestParam: page(Intege
 Get /messages/{messageId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: messageId -> MessageDTO
 Delete /messages/{messageId} (hasAnyAuthority('ADMIN', 'SUPERADMIN')) PathVariable: messageId
 Get /messages/count (hasAnyAuthority('ADMIN', 'SUPERADMIN')) -> Integer
+Post / (hasAnyAuthority('ADMIN', 'SUPERADMIN')) JSON: {recipientId, content}
 */
 
 
@@ -134,13 +135,13 @@ public class AdminController {
 
     @DeleteMapping("/user/{userId}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
-    public ResponseEntity<?> deleteAccount(@PathVariable Long userId) {
+    public ResponseEntity<?> deleteAccount(@PathVariable Long userId, @RequestParam() String reason) {
         try {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth == null || auth.getPrincipal() == null)
                 throw new ApiException("UNABLE_DELETE_ACCOUNT", HttpStatus.BAD_REQUEST);
             User adminUser = (User) auth.getPrincipal();
-            adminService.deleteAccount(adminUser, userId);
+            adminService.deleteAccount(adminUser, userId, reason);
             return ResponseEntity.status(HttpStatus.OK).body(new AdminResponse(true, "", null, null, null, null, null, null, null));
         } catch (ApiException e) {
             throw e;
@@ -323,6 +324,25 @@ public class AdminController {
         try {
             int count = adminService.getUnreadCount();
             return ResponseEntity.ok().body(new AdminResponse(true, null, null, null, null, null, null, null, count));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/messages")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'SUPERADMIN')")
+    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> body) {
+        try {
+            Number recipientId = (Number) body.get("recipientId");
+            String content = (String) body.get("content");
+            if (recipientId == null || content == null || content.trim().isEmpty() || recipientId.longValue() == -1)
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
+            if (content.length() > 500)
+                throw new ApiException("MESSAGE_TOO_LONG", HttpStatus.BAD_REQUEST);
+            messageService.createUserMessage(-1L, recipientId.longValue(), content);
+            return ResponseEntity.ok().body(new AdminResponse(true, null, null, null, null, null, null, null, null));
         } catch (ApiException e) {
             throw e;
         } catch (Exception e) {

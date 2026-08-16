@@ -11,6 +11,7 @@ import com.blueberryjoy.novel.file.FileService;
 import com.blueberryjoy.novel.homepage.RecentNovelService;
 import com.blueberryjoy.novel.homepage.TopTenService;
 import com.blueberryjoy.novel.like.LikeRepository;
+import com.blueberryjoy.novel.mail.MailService;
 import com.blueberryjoy.novel.message.Message;
 import com.blueberryjoy.novel.message.MessageDTO;
 import com.blueberryjoy.novel.message.MessageRepository;
@@ -64,6 +65,8 @@ public class AdminService {
     private MessageRepository messageRepository;
     @Autowired
     private MessageService messageService;
+    @Autowired
+    private MailService mailService;
 
     @Transactional
     public void deleteNovelById(User adminUser, long novelId, String reason) {
@@ -147,7 +150,7 @@ public class AdminService {
     }
 
     @Transactional
-    public void deleteAccount(User adminUser, long userId) {
+    public void deleteAccount(User adminUser, long userId, String reason) {
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) throw new ApiException("UNABLE_FOUND_USER", HttpStatus.BAD_REQUEST);
         if (user.getRole() == User.Role.SUPERADMIN)
@@ -179,7 +182,7 @@ public class AdminService {
             userRepository.updateChapterCount(user.getId(), -chapterCount);
             userRepository.updateWordCount(user.getId(), -wordCount);
         }
-
+        mailService.sendAccountDeletedMail(user.getEmail(), user.getUsername(), reason);
         userRepository.delete(user);
     }
 
@@ -222,14 +225,18 @@ public class AdminService {
             parent.updateCommentCount(-1);
             Chapter chapter = parent.getChapter();
             Novel novel = chapter.getNovel();
-            messageService.createDeletedMessage(comment.getUser(), "REPLY", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + parent.getContent() + " -> " + comment.getContent(), reason);
+            messageService.createDeletedMessage(comment.getUser(), "REPLY", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + trim(parent.getContent()) + " -> " + trim(comment.getContent()), reason);
         } else {
             Chapter chapter = comment.getChapter();
             Novel novel = chapter.getNovel();
-            messageService.createDeletedMessage(comment.getUser(), "COMMENT", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + comment.getContent(), reason);
+            messageService.createDeletedMessage(comment.getUser(), "COMMENT", novel.getTitle() + " -> " + chapter.getTitle() + " -> " + trim(comment.getContent()), reason);
         }
         commentRepository.deleteCommentsByParentId(commentId);
         commentRepository.delete(comment);
+    }
+
+    private String trim(String str) {
+        return (str.length() > 50) ? str.substring(0, 50) + "..." : str;
     }
 
     @Transactional

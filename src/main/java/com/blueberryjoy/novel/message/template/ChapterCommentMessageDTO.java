@@ -3,14 +3,16 @@ package com.blueberryjoy.novel.message.template;
 import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.comment.Comment;
 import com.blueberryjoy.novel.user.User;
+import lombok.Data;
 
+@Data
 public class ChapterCommentMessageDTO {
-    Long userId = null;
-    String username = null;
-    Long chapterId = null;
-    String title = null;
-    Long commentId = null;
-    String commentContent = null;
+    private Long userId = null;
+    private String username = null;
+    private Long chapterId = null;
+    private String title = null;
+    private Long commentId = null;
+    private String commentContent = null;
 
     public ChapterCommentMessageDTO(User user, Chapter chapter, Comment comment) {
         if (user != null) {

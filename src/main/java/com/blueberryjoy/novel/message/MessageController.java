@@ -3,6 +3,7 @@ Post /{messageId} (isAuthenticated()) PathVariable: messageId
 Get / (isAuthenticated()) RequestParam: page(Integer), size(Integer) -> PageDTO<MessageDTO>
 Get /{messageId} (isAuthenticated()) PathVariable: messageId -> MessageDTO
 Delete /{messageId} (isAuthenticated()) PathVariable: messageId
+Post / (isAuthenticated()) JSON: {recipientId, content}
 */
 
 package com.blueberryjoy.novel.message;
@@ -20,6 +21,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/messages")
@@ -93,6 +96,31 @@ public class MessageController {
                 throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
             User user = (User) auth.getPrincipal();
             messageService.deleteMessage(user, messageId);
+            return ResponseEntity.ok().body(new MessageResponse(true, null, null, null));
+        } catch (ApiException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ApiException("INTERNAL_SERVER_ERROR", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> body) {
+        try {
+            Number recipientId = (Number) body.get("recipientId");
+            String content = (String) body.get("content");
+            if (recipientId == null || content == null || content.trim().isEmpty())
+                throw new ApiException("ALL_FIELDS_REQUIRED", HttpStatus.BAD_REQUEST);
+            if (content.length() > 500)
+                throw new ApiException("MESSAGE_TOO_LONG", HttpStatus.BAD_REQUEST);
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth == null || auth.getPrincipal() == null)
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+            User user = (User) auth.getPrincipal();
+            if (user.getId() == recipientId.longValue())
+                throw new ApiException("ACTION_NOT_ALLOWED", HttpStatus.BAD_REQUEST);
+            messageService.createUserMessage(user.getId(), recipientId.longValue(), content);
             return ResponseEntity.ok().body(new MessageResponse(true, null, null, null));
         } catch (ApiException e) {
             throw e;

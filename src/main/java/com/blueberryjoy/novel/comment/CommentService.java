@@ -3,6 +3,7 @@ package com.blueberryjoy.novel.comment;
 import com.blueberryjoy.novel.chpater.Chapter;
 import com.blueberryjoy.novel.chpater.ChapterRepository;
 import com.blueberryjoy.novel.exception.ApiException;
+import com.blueberryjoy.novel.message.MessageService;
 import com.blueberryjoy.novel.user.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,6 +21,8 @@ public class CommentService {
     private CommentRepository commentRepository;
     @Autowired
     private ChapterRepository chapterRepository;
+    @Autowired
+    private MessageService messageService;
 
     @Transactional
     public CommentDTO createComment(User user, Number chapterIdNum, Number parentIdNum, String content) {
@@ -32,15 +35,18 @@ public class CommentService {
             if (parent == null)
                 throw new ApiException("UNABLE_FOUND_COMMENT", HttpStatus.BAD_REQUEST);
             comment.setParent(parent);
+            commentRepository.save(comment);
             commentRepository.updateCommentCount(parentId, 1);
+            messageService.createCommentRepliedMessage(parent.getUser(), user, parent, comment);
         } else {
             long chapterId = chapterIdNum.longValue();
             Chapter chapter = chapterRepository.findById(chapterId).orElse(null);
             if (chapter == null)
                 throw new ApiException("UNABLE_FOUND_CHAPTER", HttpStatus.BAD_REQUEST);
             comment.setChapter(chapter);
+            commentRepository.save(comment);
+            messageService.createChapterCommentMessage(chapter.getNovel().getAuthor(), user, chapter, comment);
         }
-        commentRepository.save(comment);
         return new CommentDTO(comment);
     }
 
