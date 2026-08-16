@@ -13,11 +13,7 @@ import java.time.LocalDateTime;
         @Index(name = "idx_message_sender_recipient_type", columnList = "sender_id, recipient_id, type"),
         @Index(name = "idx_message_recipient_read", columnList = "recipient_id, is_read")
 })
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Data
 public class Message {
 
     @Id
