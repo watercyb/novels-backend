@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 public class MailService {
     @Autowired
     Mailtrap mailtrap;
+    @Autowired
+    MailCount mailCount;
 
     public void sendWelcomeMail(String email, String username) {
         String body = """
@@ -49,6 +51,7 @@ public class MailService {
                 </html>
                 """.formatted(username);
         mailtrap.sendEmail(email, "Welcome to Novels", body, "welcome.html");
+        mailCount.increment();
     }
 
     public void sendResetPasswordMail(String email, String username, String link) {
@@ -117,6 +120,7 @@ public class MailService {
                        </html>
                 """.formatted(username, link, link, link);
         mailtrap.sendEmail(email, "Reset Your Password", body, "reset_password.html");
+        mailCount.increment();
     }
 
     public void sendAccountDeletedMail(String email, String username, String reason) {
@@ -165,5 +169,6 @@ public class MailService {
                 </html>
                 """.formatted(username, reason);
         mailtrap.sendEmail(email, "Your Novels Account Has Been Deleted", body, "account-deleted.html");
+        mailCount.increment();
     }
 }
