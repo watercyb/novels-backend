@@ -25,6 +25,7 @@ public class TopTenService {
     private ConcurrentHashMap<Long, LongAdder> todayCounts = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private ConcurrentHashMap<Long, NovelDTO> topTens = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<Long, Long> topTenCounts = new ConcurrentHashMap<>();
 
     @EventListener(ApplicationReadyEvent.class)
     @Transactional(readOnly = true)
@@ -43,7 +44,9 @@ public class TopTenService {
         }
         List<Long> ids = new ArrayList<>(pq.size());
         while (!pq.isEmpty()) {
-            ids.add(pq.poll()[0]);
+            long[] pair = pq.poll();
+            ids.add(pair[0]);
+            topTenCounts.put(pair[0], pair[1]);
         }
         for (NovelDTO novelDTO : getNovels(ids)) {
             topTens.put(novelDTO.getId(), novelDTO);
@@ -89,14 +92,18 @@ public class TopTenService {
         }
         writeFile(new WeeklyViewData(currentDayIndex, newWeeklyViews));
         List<Long> ids = new ArrayList<>();
+        ConcurrentHashMap<Long, Long> newTopTenCounts = new ConcurrentHashMap<>();
         while (!pq.isEmpty()) {
-            ids.add(pq.poll()[0]);
+            long[] pair = pq.poll();
+            ids.add(pair[0]);
+            newTopTenCounts.put(pair[0], pair[1]);
         }
-        ConcurrentHashMap<Long, NovelDTO> newTopTen = new ConcurrentHashMap<>();
+        ConcurrentHashMap<Long, NovelDTO> newTopTens = new ConcurrentHashMap<>();
         for (NovelDTO novelDTO : getNovels(ids)) {
-            newTopTen.put(novelDTO.getId(), novelDTO);
+            newTopTens.put(novelDTO.getId(), novelDTO);
         }
-        topTens = newTopTen;
+        topTens = newTopTens;
+        topTenCounts = newTopTenCounts;
     }
 
     private WeeklyViewData readFile() {
@@ -130,6 +137,7 @@ public class TopTenService {
         for (NovelDTO novelDTO : topTens.values()) {
             topTenList.add(novelDTO.copy());
         }
+        topTenList.sort((a, b) -> Long.compare(topTenCounts.getOrDefault(b.getId(), 0L), topTenCounts.getOrDefault(a.getId(), 0L)));
         return topTenList;
     }
 
