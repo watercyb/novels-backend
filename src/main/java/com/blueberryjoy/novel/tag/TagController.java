@@ -30,6 +30,7 @@ public class TagController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record TagResponse(boolean success, String message, TagDTO tag, List<TagDTO> tags) {
     }
 }

@@ -224,12 +224,12 @@ public class ChapterService {
         recentNovelService.updateRecentNovel(novel);
     }
 
-    private static int countWords(String text, Locale locale) {
+    private static int countWords(String text) {
         if (text == null || text.isBlank()) {
             return 0;
         }
 
-        BreakIterator iterator = BreakIterator.getWordInstance(locale);
+        BreakIterator iterator = BreakIterator.getWordInstance(Locale.ENGLISH);
         iterator.setText(text);
 
         int count = 0;
@@ -267,7 +267,7 @@ public class ChapterService {
                 }
 
                 String segment = text.substring(i, j);
-                count += countWords(segment, Locale.ENGLISH);
+                count += countWords(segment);
 
                 i = j;
             }

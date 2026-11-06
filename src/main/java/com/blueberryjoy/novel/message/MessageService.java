@@ -29,7 +29,7 @@ public class MessageService {
     private ChapterRepository chapterRepository;
     @Autowired
     private CommentRepository commentRepository;
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
 
     //CHAPTER_COMMENT
     @Transactional

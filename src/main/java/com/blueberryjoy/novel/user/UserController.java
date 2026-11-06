@@ -295,6 +295,7 @@ public class UserController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record UserResponse(boolean success, String message, UserDTO user) {
     }
 }

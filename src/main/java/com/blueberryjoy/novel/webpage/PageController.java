@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 public class PageController {
+    @SuppressWarnings("SameReturnValue")
     @GetMapping(value = {
             "/",
             "/{path:^(?!api|assets|.*\\..*$).*$}",

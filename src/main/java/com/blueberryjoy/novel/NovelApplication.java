@@ -1,6 +1,5 @@
 package com.blueberryjoy.novel;
 
-import com.blueberryjoy.novel.message.MessageService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;

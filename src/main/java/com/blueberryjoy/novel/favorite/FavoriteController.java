@@ -100,6 +100,7 @@ public class FavoriteController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record FavoriteResponse(boolean success, String message, List<Long> list, PageDTO<NovelDTO> page) {
     }
 }

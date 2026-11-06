@@ -78,6 +78,7 @@ public class LikeController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record LikeResponse(boolean success, String message, List<Long> list) {
     }
 }

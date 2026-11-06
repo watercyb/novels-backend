@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface ChapterRepository extends JpaRepository<Chapter, Long> {
     @Query("""
             SELECT new com.blueberryjoy.novel.chpater.ChapterDTO(

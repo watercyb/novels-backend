@@ -129,6 +129,7 @@ public class MessageController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record MessageResponse(boolean success, String message, MessageDTO messageDTO, PageDTO<MessageDTO> page) {
     }
 }

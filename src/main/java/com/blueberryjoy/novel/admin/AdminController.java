@@ -350,6 +350,7 @@ public class AdminController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record AdminResponse(boolean success, String message, UserDTO user, PageDTO<UserDTO> users, Counts counts,
                          NovelDTO novel, MessageDTO messageDTO, PageDTO<MessageDTO> messages, Integer unreadCount) {
     }

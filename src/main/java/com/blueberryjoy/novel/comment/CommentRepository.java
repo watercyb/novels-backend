@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface CommentRepository extends JpaRepository<Comment, Long> {
     @Query("""
             SELECT c

@@ -46,6 +46,7 @@ public class AnalyticsController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record AnalyticsResponse(boolean success, int users, int novels, int messages, int mails) {
     }
 }

@@ -100,6 +100,7 @@ public class CommentController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record CommentResponse(boolean success, String message, CommentDTO comment, List<CommentDTO> list,
                            PageDTO<CommentDTO> page) {
     }

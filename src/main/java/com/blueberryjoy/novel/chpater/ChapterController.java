@@ -188,6 +188,7 @@ public class ChapterController {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     record ChapterResponse(boolean success, String message, List<ChapterDTO> chapter, PageDTO<ChapterDTO> page) {
     }
 }

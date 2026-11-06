@@ -43,6 +43,7 @@ public class Mailtrap {
     record EmailRequest(From from, List<To> to, String subject, String html, String category) {
     }
 
+    @SuppressWarnings("SameParameterValue")
     record From(String email, String name) {
     }
 
